@@ -1,0 +1,1297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TowPacket — Abandoned-Vehicle Lien &amp; Title Packets (Demo)</title>
+<style>
+  :root{
+    --navy:#12263a; --navy2:#1b3a55; --ink:#1c2733; --mut:#5b6b7a; --line:#d9e1e8;
+    --bg:#eef2f5; --card:#ffffff; --accent:#0f7a4d; --accent2:#0b5cad;
+    --red:#c0392b; --redbg:#fdecea; --amber:#a86e00; --amberbg:#fdf3e0;
+    --green:#0f7a4d; --greenbg:#e7f5ee; --greybg:#eef1f4;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; background:var(--bg); color:var(--ink); font-size:14px;}
+  header{background:var(--navy); color:#fff; padding:14px 28px; display:flex; align-items:center; gap:18px; flex-wrap:wrap;}
+  header .logo{font-size:20px; font-weight:700; letter-spacing:.3px;}
+  header .logo span{color:#7fd1a8;}
+  header .sub{color:#b9c9d6; font-size:12.5px;}
+  header .demo-badge{margin-left:auto; background:#f5b301; color:#231a00; font-weight:700; font-size:12px; padding:5px 12px; border-radius:20px; text-transform:uppercase; letter-spacing:.6px;}
+  .companybar{background:var(--navy2); color:#dbe7f1; padding:8px 28px; font-size:13px; display:flex; gap:24px; flex-wrap:wrap;}
+  .companybar b{color:#fff;}
+  nav{display:flex; gap:4px; background:#fff; border-bottom:1px solid var(--line); padding:0 20px; position:sticky; top:0; z-index:5; flex-wrap:wrap;}
+  nav button{background:none; border:none; border-bottom:3px solid transparent; padding:13px 16px; font-size:14px; font-weight:600; color:var(--mut); cursor:pointer; min-height:48px;}
+  nav button:hover{color:var(--ink);}
+  nav button.active{color:var(--navy); border-bottom-color:var(--accent);}
+  main{max-width:1180px; margin:0 auto; padding:24px 20px 40px;}
+  section.panel{display:none;}
+  section.panel.active{display:block;}
+  h2{font-size:18px; margin-bottom:4px; color:var(--navy);}
+  .pdesc{color:var(--mut); margin-bottom:18px; font-size:13px;}
+  .cards{display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:16px; margin-bottom:22px;}
+  .card{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:18px 20px;}
+  .card .lbl{font-size:12px; text-transform:uppercase; letter-spacing:.7px; color:var(--mut); font-weight:700;}
+  .card .big{font-size:28px; font-weight:800; margin:6px 0 2px; color:var(--navy);}
+  .card .note{font-size:12.5px; color:var(--mut);}
+  .card.risk .big{color:var(--red);}
+  .card.warn .big{color:var(--amber);}
+  .card.good .big{color:var(--green);}
+  .riskbanner{background:var(--redbg); border:1px solid #f0c6c0; color:#7c2318; border-radius:10px; padding:14px 18px; margin-bottom:22px; font-size:13.5px;}
+  .riskbanner b{color:var(--red);}
+  .statstrip{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px 20px; margin-bottom:22px;}
+  .statstrip h3{font-size:14px; color:var(--navy); margin-bottom:8px;}
+  .statstrip li{margin-left:18px; margin-bottom:4px; color:var(--ink); font-size:13.5px;}
+  .statstrip .clock-red{color:var(--red); font-weight:700;}
+  .statstrip .clock-amber{color:var(--amber); font-weight:700;}
+  table{width:100%; border-collapse:collapse; background:var(--card); border:1px solid var(--line); border-radius:10px; overflow:hidden;}
+  th{background:var(--greybg); text-align:left; font-size:12px; text-transform:uppercase; letter-spacing:.5px; color:var(--mut); padding:10px 12px;}
+  td{padding:10px 12px; border-top:1px solid var(--line); vertical-align:top; font-size:13.5px;}
+  .pill{display:inline-block; padding:2px 10px; border-radius:12px; font-size:12px; font-weight:700; white-space:nowrap;}
+  .pill.ok{background:var(--greenbg); color:var(--green);}
+  .pill.soon{background:var(--amberbg); color:var(--amber);}
+  .pill.late{background:var(--redbg); color:var(--red);}
+  .pill.ready{background:var(--greenbg); color:var(--green);}
+  .pill.closed{background:#eceff1; color:#37474f;}
+  .pill.track{background:#e3ecf7; color:var(--navy2);}
+  .btn{background:var(--accent); color:#fff; border:none; border-radius:8px; padding:10px 16px; font-size:13.5px; font-weight:700; cursor:pointer; min-height:44px;}
+  .btn:hover{background:#0b6340;}
+  .btn:disabled{background:#b9c9d6; cursor:not-allowed;}
+  .btn.secondary{background:#fff; color:var(--navy); border:1px solid var(--line);}
+  .btn.secondary:hover{background:var(--greybg);}
+  .btn.small{padding:6px 10px; min-height:36px; font-size:12.5px; margin:2px 2px 2px 0;}
+  .btn.blue{background:var(--accent2);}
+  .btn.blue:hover{background:#094f86;}
+  .btn.danger{background:#fff; color:var(--red); border:1px solid #f0c6c0;}
+  .btn.danger:hover{background:var(--redbg);}
+  .toolbar{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:14px;}
+  .toolbar .spacer{flex:1;}
+  input[type=text], input[type=number], input[type=email], input[type=date], select, textarea{width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:8px; font-size:14px; font-family:inherit; background:#fff;}
+  textarea{resize:vertical;}
+  label.flabel{display:block; font-size:12.5px; font-weight:700; color:var(--mut); margin:0 0 6px;}
+  .field{margin-bottom:14px;}
+  .fieldrow{display:flex; gap:8px; align-items:flex-start;}
+  .fieldrow .grow{flex:1;}
+  .micbtn{flex:0 0 auto; width:48px; height:48px; border-radius:8px; border:1px solid var(--line); background:#fff; font-size:20px; cursor:pointer;}
+  .micbtn:hover{background:var(--greybg);}
+  .formcard{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:20px; max-width:820px; margin-bottom:22px;}
+  .formcard h3{font-size:15px; color:var(--navy); margin-bottom:12px;}
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:0 16px;}
+  .err{background:var(--redbg); color:#7c2318; border:1px solid #f0c6c0; border-radius:8px; padding:10px 14px; margin-bottom:12px; display:none; font-size:13.5px;}
+  .okmsg{background:var(--greenbg); color:#0b5340; border:1px solid #bfe3cf; border-radius:8px; padding:10px 14px; margin-bottom:12px; display:none; font-size:13.5px;}
+  .cite{display:inline-block; font-size:11.5px; font-weight:700; color:var(--navy2); background:#e3ecf7; border-radius:6px; padding:1px 7px; white-space:nowrap;}
+  .verifybox{background:#fdf3e0; border:1px dashed var(--amber); color:#6d4c00; border-radius:10px; padding:14px 18px; margin-bottom:16px; font-size:13.5px;}
+  .verifybox b{color:var(--amber);}
+  .mile{background:var(--card); border:1px solid var(--line); border-left:5px solid #90a4ae; border-radius:10px; padding:14px 18px; margin-bottom:12px;}
+  .mile.done{border-left-color:var(--green);}
+  .mile.due{border-left-color:var(--amber);}
+  .mile.late{border-left-color:var(--red);}
+  .mile.verify{border-left-color:var(--amber); background:#fffdf6;}
+  .mile h3{font-size:14.5px; color:var(--navy); margin-bottom:3px;}
+  .mile .meta{color:var(--mut); font-size:12.5px; margin-bottom:6px;}
+  .mile p{font-size:13.5px;}
+  .letterbox{background:#fff; border:1px solid var(--line); border-radius:10px; padding:22px 26px; font-size:13.5px; line-height:1.55; max-width:820px; margin-bottom:16px; white-space:pre-wrap; word-break:break-word;}
+  .checkline{display:flex; gap:8px; align-items:flex-start; font-size:13.5px; padding:5px 0; border-top:1px solid var(--line);}
+  .checkline .mark{font-weight:800; flex:0 0 auto; width:20px;}
+  .checkline .mark.y{color:var(--green);}
+  .checkline .mark.n{color:var(--red);}
+  .checkline .mark.v{color:var(--amber);}
+  .pricegrid{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:16px; margin-bottom:22px;}
+  .pricecard{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:22px;}
+  .pricecard .price{font-size:34px; font-weight:800; color:var(--navy); margin:8px 0;}
+  .pricecard li{margin-left:18px; margin-bottom:5px; font-size:13.5px;}
+  .checkrow{display:flex; gap:10px; align-items:flex-start; margin:14px 0;}
+  .checkrow input{width:20px; height:20px; margin-top:2px; flex:0 0 auto;}
+  details{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px 18px; margin-bottom:10px;}
+  details summary{font-weight:700; color:var(--navy); cursor:pointer; font-size:14.5px;}
+  details p{margin-top:8px; color:var(--ink); font-size:13.5px;}
+  footer{border-top:1px solid var(--line); padding:18px 28px; color:var(--mut); font-size:12.5px; max-width:1180px; margin:0 auto;}
+  #toast{position:fixed; bottom:22px; left:50%; transform:translateX(-50%); background:var(--navy); color:#fff; padding:12px 20px; border-radius:10px; font-size:14px; display:none; z-index:50; max-width:90vw; text-align:center;}
+  .empty{background:var(--card); border:1px solid var(--line); border-radius:10px; padding:28px; text-align:center; color:var(--mut);}
+  #printArea{display:none;}
+  @media (max-width:640px){
+    .grid2{grid-template-columns:1fr;}
+    td,th{padding:8px;}
+    .tablewrap{overflow-x:auto;}
+  }
+  @media print{
+    header, nav, main, footer, #toast{display:none !important;}
+    #printArea{display:block; font-size:12px;}
+    #printArea table{border:1px solid #999; width:100%; border-collapse:collapse;}
+    #printArea th, #printArea td{border:1px solid #ccc; padding:6px 8px;}
+  }
+</style>
+</head>
+<body>
+<div id="termsGate" style="display:none; position:fixed; inset:0; z-index:200; background:rgba(10,20,35,.72); align-items:flex-start; justify-content:center; overflow:auto; padding:22px 14px;">
+  <div style="background:#fff; border-radius:14px; max-width:560px; width:100%; padding:22px; box-shadow:0 18px 50px rgba(0,0,0,.35);">
+    <h2 style="margin:0 0 8px; font-size:21px;">Before you start — please read</h2>
+    <div style="font-size:14px; line-height:1.55; color:#26303d;">
+      <p><b>Demo build.</b> Everything in this demo — the yard, vehicles, people, and records — is fictional sample data so you can see how TowPacket works. Nothing here is a real case.</p>
+      <p><b>TowPacket prepares paperwork; it does not file anything.</b> You (the yard owner) review, sign, notarize where the statute requires, file with Service Oklahoma, and pay the state. TowPacket is not a law firm and this is not legal advice. Its deadlines are computed from the Oklahoma statutes cited on every screen — <b>verify flagged steps against the current state forms before you rely on them</b>, because a missed or misread deadline can cost you the lien.</p>
+      <p><b>Your data stays on this device.</b> No account, no cloud copy. Use the Packet print view to keep paper files.</p>
+      <label style="display:flex; gap:10px; align-items:flex-start; margin:14px 0; cursor:pointer;"><input type="checkbox" id="termsCheck" style="width:20px; height:20px; margin-top:2px;"> <span>I understand: TowPacket prepares the packets, I sign and file them myself, and I verify flagged steps with the state.</span></label>
+      <button type="button" class="btn primary" id="agreeBtn" disabled style="width:100%; min-height:52px; font-size:16px;">Agree &amp; open TowPacket</button>
+    </div>
+  </div>
+</div>
+<header>
+  <div>
+    <div class="logo">Tow<span>Packet</span></div>
+    <div class="sub">Abandoned-vehicle lien &amp; title packets — every Oklahoma deadline computed, cited, and chased before it costs you the car.</div>
+  </div>
+  <div class="demo-badge">Demo — fictional sample data</div>
+</header>
+<div class="companybar">
+  <div>Yard: <b>Route 66 Recovery LLC</b> (fictional demo company)</div>
+  <div>Vehicles on the clock: <b id="barCaseCount">8</b></div>
+  <div>Today: <b id="barToday"></b></div>
+</div>
+<nav id="mainNav">
+  <button data-view="board" class="active">Lot Board</button>
+  <button data-view="cases">Cases</button>
+  <button data-view="newcase">New Case</button>
+  <button data-view="timeline">Timeline</button>
+  <button data-view="notices">Notices</button>
+  <button data-view="proof">Proof Log</button>
+  <button data-view="packet">Sale &amp; Title Packet</button>
+  <button data-view="archive">Archive</button>
+  <button data-view="pricing">Pricing &amp; Pilot</button>
+  <button data-view="help">Help</button>
+</nav>
+<main>
+<!-- ============ LOT BOARD ============ -->
+<section class="panel active" id="view-board">
+  <h2>Every unclaimed vehicle, on one clock</h2>
+  <p class="pdesc">Each vehicle on your lot is running a legal clock under Oklahoma's possessory-lien law. Miss the notice window and the storage money stops being yours to charge — the car becomes free parking, then a disposal problem. This board shows the next deadline on every case, with the statute that sets it.</p>
+  <div class="riskbanner" id="riskBanner"></div>
+  <div class="cards">
+    <div class="card"><div class="lbl">Active cases</div><div class="big" id="statActive">–</div><div class="note">vehicles on the clock right now</div></div>
+    <div class="card risk"><div class="lbl">Deadline missed</div><div class="big" id="statOverdue">–</div><div class="note">a statutory date has passed unmet</div></div>
+    <div class="card warn"><div class="lbl">Due in 10 days</div><div class="big" id="statDueSoon">–</div><div class="note">deadlines landing in the next 10 days</div></div>
+    <div class="card good"><div class="lbl">Ready for sale</div><div class="big" id="statReady">–</div><div class="note">notice periods complete, sale may proceed</div></div>
+    <div class="card good"><div class="lbl">Protected storage</div><div class="big" id="statProtected">–</div><div class="note">storage you may lawfully charge today (§ 91 track)</div></div>
+    <div class="card warn"><div class="lbl">Unprotected days</div><div class="big" id="statUnprotected">–</div><div class="note">lot days before the lien notice — not assessable</div></div>
+  </div>
+  <div class="statstrip">
+    <h3>⏰ Next deadlines — worst first</h3>
+    <ul id="deadlineList"></ul>
+  </div>
+  <div class="toolbar">
+    <button class="btn" id="dashCasesBtn">See all cases</button>
+    <button class="btn blue" id="dashNewBtn">Start a new case</button>
+    <span class="spacer"></span>
+    <button class="btn secondary" id="exportCsvBtn">Export lot board (CSV)</button>
+    <button class="btn secondary" id="printBoardBtn">Print lot board</button>
+  </div>
+  <p class="pdesc">How the clock works, in one line: mail the Notice of Possessory Lien within 60 days of the first service <span class="cite">42 O.S. § 91 A.4</span> — storage charges only begin the day that notice is mailed <span class="cite">42 O.S. § 91 A.5</span> — foreclosure proceedings must be commenced 10–30 days after the mailing <span class="cite">42 O.S. § 91 A.11</span> — and the sale itself needs the Notice of Sale posted and mailed at least 10 days ahead, and completed within 60 days of that notice <span class="cite">42 O.S. § 91 A.7, A.11</span>. TowPacket prepares every document; <b>you</b> sign, file, and pay the state. Nothing here is legal advice.</p>
+</section>
+
+<!-- ============ CASES ============ -->
+<section class="panel" id="view-cases">
+  <h2>Cases</h2>
+  <p class="pdesc">Every vehicle case file — one record per vehicle, and every screen in TowPacket reads this same record. Open a case to work its timeline, notices, proof, and packet.</p>
+  <div class="toolbar">
+    <div style="flex:1; min-width:200px;">
+      <div class="fieldrow"><div class="grow"><input type="text" id="searchCases" placeholder="Search VIN, vehicle, owner, ticket #…"></div><button class="micbtn" data-mic="searchCases" title="Voice entry" aria-label="Voice search">🎤</button></div>
+    </div>
+    <select id="filterStatus" style="width:auto;">
+      <option value="all">All cases</option>
+      <option value="active">Active only</option>
+      <option value="overdue">Deadline missed</option>
+      <option value="duesoon">Due in 10 days</option>
+      <option value="ready">Ready for sale</option>
+      <option value="closed">Closed</option>
+    </select>
+  </div>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>Vehicle</th><th>VIN (last 6)</th><th>Towed</th><th>Days on lot</th><th>Track</th><th>Status</th><th>Next deadline</th><th>Actions</th></tr></thead>
+    <tbody id="caseBody"></tbody>
+  </table>
+  </div>
+  <div class="empty" id="caseEmpty" style="display:none;">No cases match. Clear the search or filter, or start a new case.</div>
+</section>
+
+<!-- ============ NEW CASE ============ -->
+<section class="panel" id="view-newcase">
+  <h2>New case — one screen, straight off the tow ticket</h2>
+  <p class="pdesc">In the live product you snap a photo of the tow ticket and these fields fill from it. Here, type or dictate them. The moment you save, the vehicle's statutory timeline is computed and its first deadline lands on the Lot Board.</p>
+  <div class="formcard">
+    <div class="err" id="ncErr"></div>
+    <div class="grid2">
+      <div class="field"><label class="flabel" for="ncVin">VIN *</label><div class="fieldrow"><div class="grow"><input type="text" id="ncVin" placeholder="17 characters, off the dash plate"></div><button class="micbtn" data-mic="ncVin" title="Voice entry" aria-label="Voice entry for VIN">🎤</button></div></div>
+      <div class="field"><label class="flabel" for="ncTowDate">Tow / first-service date *</label><input type="date" id="ncTowDate"></div>
+      <div class="field"><label class="flabel" for="ncYear">Year</label><div class="microw"><input type="number" id="ncYear" min="1900" max="2100" placeholder="e.g. 2016"><button type="button" class="micbtn" data-mic="ncYear" aria-label="Speak the year">🎤</button></div></div>
+      <div class="field"><label class="flabel" for="ncMake">Make *</label><div class="fieldrow"><div class="grow"><input type="text" id="ncMake" placeholder="e.g. Ford"></div><button class="micbtn" data-mic="ncMake" title="Voice entry" aria-label="Voice entry for make">🎤</button></div></div>
+      <div class="field"><label class="flabel" for="ncModel">Model</label><div class="fieldrow"><div class="grow"><input type="text" id="ncModel" placeholder="e.g. F-150"></div><button class="micbtn" data-mic="ncModel" title="Voice entry" aria-label="Voice entry for model">🎤</button></div></div>
+      <div class="field"><label class="flabel" for="ncColor">Color</label><div class="fieldrow"><div class="grow"><input type="text" id="ncColor" placeholder="e.g. White"></div><button class="micbtn" data-mic="ncColor" title="Voice entry" aria-label="Voice entry for color">🎤</button></div></div>
+      <div class="field"><label class="flabel" for="ncPlate">Plate (if any)</label><div class="fieldrow"><div class="grow"><input type="text" id="ncPlate" placeholder="e.g. OK LKR-204"></div><button class="micbtn" data-mic="ncPlate" title="Voice entry" aria-label="Voice entry for plate">🎤</button></div></div>
+      <div class="field"><label class="flabel" for="ncTicket">Tow ticket #</label><div class="fieldrow"><div class="grow"><input type="text" id="ncTicket" placeholder="e.g. T-4471"></div><button class="micbtn" data-mic="ncTicket" title="Voice entry" aria-label="Voice entry for ticket number">🎤</button></div></div>
+      <div class="field"><label class="flabel" for="ncTowType">How did it get here?</label>
+        <select id="ncTowType">
+          <option value="consensual">Consensual tow (owner/motor club asked)</option>
+          <option value="repair">Repair-shop hold (fixed, never picked up)</option>
+          <option value="private">Private-property tow (not law-enforcement directed)</option>
+          <option value="law">Law-enforcement directed / § 954A tow</option>
+        </select></div>
+      <div class="field"><label class="flabel" for="ncRequestedBy">Requested by</label><div class="fieldrow"><div class="grow"><input type="text" id="ncRequestedBy" placeholder="e.g. Owner / Grove PD / property owner"></div><button class="micbtn" data-mic="ncRequestedBy" title="Voice entry" aria-label="Voice entry for requested by">🎤</button></div></div>
+      <div class="field"><label class="flabel" for="ncTowFrom">Towed from</label><div class="fieldrow"><div class="grow"><input type="text" id="ncTowFrom" placeholder="e.g. US-59 mile 12, Grove"></div><button class="micbtn" data-mic="ncTowFrom" title="Voice entry" aria-label="Voice entry for tow location">🎤</button></div></div>
+      <div class="field"><label class="flabel" for="ncOwnerName">Registered owner (if known yet)</label><div class="fieldrow"><div class="grow"><input type="text" id="ncOwnerName" placeholder="From the Service Oklahoma record"></div><button class="micbtn" data-mic="ncOwnerName" title="Voice entry" aria-label="Voice entry for owner name">🎤</button></div></div>
+      <div class="field"><label class="flabel" for="ncOwnerAddr">Owner mailing address</label><div class="fieldrow"><div class="grow"><input type="text" id="ncOwnerAddr" placeholder="As shown on the title record"></div><button class="micbtn" data-mic="ncOwnerAddr" title="Voice entry" aria-label="Voice entry for owner address">🎤</button></div></div>
+      <div class="field"><label class="flabel" for="ncLienName">Lienholder (if any)</label><div class="fieldrow"><div class="grow"><input type="text" id="ncLienName" placeholder="As shown on the face of the title"></div><button class="micbtn" data-mic="ncLienName" title="Voice entry" aria-label="Voice entry for lienholder">🎤</button></div></div>
+      <div class="field"><label class="flabel" for="ncLienAddr">Lienholder mailing address</label><div class="fieldrow"><div class="grow"><input type="text" id="ncLienAddr" placeholder="As shown on the title record"></div><button class="micbtn" data-mic="ncLienAddr" title="Voice entry" aria-label="Voice entry for lienholder address">🎤</button></div></div>
+      <div class="field"><label class="flabel" for="ncService">Tow + service charges so far ($)</label><div class="microw"><input type="number" id="ncService" min="0" step="1" placeholder="e.g. 185"><button type="button" class="micbtn" data-mic="ncService" aria-label="Speak the tow and service charges">🎤</button></div></div>
+      <div class="field"><label class="flabel" for="ncRate">Your storage rate ($/day)</label><div class="microw"><input type="number" id="ncRate" min="0" step="1" placeholder="e.g. 25"><button type="button" class="micbtn" data-mic="ncRate" aria-label="Speak your storage rate">🎤</button></div></div>
+      <div class="field"><label class="flabel" for="ncMailFee">Certified-mail cost per mailing ($)</label><div class="microw"><input type="number" id="ncMailFee" min="0" step="0.5" placeholder="e.g. 8"><button type="button" class="micbtn" data-mic="ncMailFee" aria-label="Speak the certified mail fee">🎤</button></div></div>
+      <div class="field"><label class="flabel" for="ncTitleFee">Title application fee you paid ($)</label><div class="microw"><input type="number" id="ncTitleFee" min="0" step="1" placeholder="0 — verify the current Service Oklahoma fee"><button type="button" class="micbtn" data-mic="ncTitleFee" aria-label="Speak the title application fee">🎤</button></div></div>
+    </div>
+    <div class="field"><label class="flabel" for="ncNotes">Notes</label><div class="fieldrow"><div class="grow"><textarea id="ncNotes" rows="2" placeholder="Condition, keys, police hold, anything the file should remember…"></textarea></div><button class="micbtn" data-mic="ncNotes" title="Voice entry" aria-label="Voice entry for notes">🎤</button></div></div>
+    <button class="btn" id="ncSaveBtn">Save case &amp; start the clock</button>
+    <p style="font-size:12.5px; color:var(--mut); margin-top:10px;">Law-enforcement directed and § 954A tows run on the <b>§ 91A track</b> (47 O.S. § 954A duties first); everything else runs on the <b>§ 91 track</b> (42 O.S. § 91). TowPacket picks the track from this answer — check the Timeline screen to see which law is driving the dates.</p>
+  </div>
+</section>
+
+<!-- ============ TIMELINE ============ -->
+<section class="panel" id="view-timeline">
+  <h2>Case timeline — every date, with its statute</h2>
+  <p class="pdesc">Pick a case. Every computed date shows the Oklahoma statute it comes from — if a date can't be sourced, TowPacket says <b>verify</b> instead of guessing. Dates you already have on paper can be recorded below and the whole timeline re-computes.</p>
+  <div class="toolbar">
+    <div style="flex:1; min-width:220px;"><label class="flabel" for="tlCase">Case</label><select id="tlCase"></select></div>
+  </div>
+  <div id="tlHead"></div>
+  <div id="tlMiles"></div>
+  <div class="formcard">
+    <h3>Record dates from your paper file</h3>
+    <div class="grid2">
+      <div class="field"><label class="flabel" for="dRecordsReq">Owner-record request sent (to Service Oklahoma)</label><input type="date" id="dRecordsReq"></div>
+      <div class="field"><label class="flabel" for="dRecordsRec">Owner/lienholder record received</label><input type="date" id="dRecordsRec"></div>
+      <div class="field"><label class="flabel" for="dNopl">Notice of Possessory Lien mailed (certified)</label><input type="date" id="dNopl"></div>
+      <div class="field"><label class="flabel" for="dProc">Foreclosure proceedings commenced (e.g. title application filed)</label><input type="date" id="dProc"></div>
+      <div class="field"><label class="flabel" for="dNosPost">Notice of Sale posted (both public places)</label><input type="date" id="dNosPost"></div>
+      <div class="field"><label class="flabel" for="dNosMail">Notice of Sale mailed (certified)</label><input type="date" id="dNosMail"></div>
+      <div class="field"><label class="flabel" for="dLoc">§ 91A location notice mailed (certified)</label><input type="date" id="dLoc"></div>
+      <div class="field"><label class="flabel" for="dSale">Sale date (planned or held)</label><input type="date" id="dSale"></div>
+      <div class="field"><label class="flabel" for="dLienResp">Lienholder response</label>
+        <select id="dLienResp">
+          <option value="">No response yet</option>
+          <option value="inspection">Asked to inspect the vehicle (§ 91 A.9)</option>
+          <option value="payoff">Asked for payoff / charges</option>
+          <option value="pickedup">Retrieved the vehicle</option>
+          <option value="none">Responded — no action needed</option>
+        </select></div>
+    </div>
+    <button class="btn" id="dSaveBtn">Save dates &amp; re-check the timeline</button>
+    <div class="okmsg" id="dMsg"></div>
+  </div>
+  <div class="formcard">
+    <h3>Close this case</h3>
+    <div class="grid2">
+      <div class="field"><label class="flabel" for="closePrice">Sale price ($) — if it sold</label><input type="number" id="closePrice" min="0" step="1" placeholder="e.g. 1400"></div>
+      <div class="field"><label class="flabel" for="closeDate">Closing date</label><input type="date" id="closeDate"></div>
+    </div>
+    <div class="toolbar">
+      <button class="btn" id="closeSoldBtn">Mark sold at sale</button>
+      <button class="btn secondary" id="closeReleasedBtn">Mark released to owner / lienholder</button>
+      <span class="spacer"></span>
+      <button class="btn danger" id="deleteCaseBtn">Delete this case</button>
+    </div>
+    <p style="font-size:12.5px; color:var(--mut);">Closing moves the case to the Archive with its full file. Deleting erases it — that is permanent, and the app asks first.</p>
+  </div>
+</section>
+
+<!-- ============ NOTICES ============ -->
+<section class="panel" id="view-notices">
+  <h2>Notice generator — letters filled from the case file</h2>
+  <p class="pdesc">Each letter is auto-filled from the ticket and the owner record, with the statute's own content checklist beside it. Print it, sign it (the lien notice signature must be notarized <span class="cite">42 O.S. § 91 A.4.g</span>), mail it, then log the mailing here — the certified-mail date is the one the whole clock runs on. TowPacket never mails or files anything itself.</p>
+  <div class="toolbar">
+    <div style="flex:1; min-width:220px;"><label class="flabel" for="ntCase">Case</label><select id="ntCase"></select></div>
+    <div style="flex:1; min-width:220px;"><label class="flabel" for="ntKind">Letter</label><select id="ntKind"></select></div>
+  </div>
+  <div id="ntChecklist"></div>
+  <div class="letterbox" id="ntLetter"></div>
+  <div class="toolbar">
+    <button class="btn blue" id="ntPrintBtn">Print this letter</button>
+    <button class="btn" id="ntLogCertBtn">Log certified mailing (today)</button>
+    <button class="btn secondary" id="ntLogFirstBtn">Log first-class mailing (today)</button>
+  </div>
+  <div class="okmsg" id="ntMsg"></div>
+  <div class="statstrip">
+    <h3>Mail log for this case</h3>
+    <ul id="ntMailLog"></ul>
+  </div>
+</section>
+
+<!-- ============ PROOF LOG ============ -->
+<section class="panel" id="view-proof">
+  <h2>Proof log — the paper trail that makes the packet hold up</h2>
+  <p class="pdesc">Postings, photos, the tow ticket, certified-mail receipts (the green cards / Form 3811 proof Service Oklahoma can ask for <span class="cite">42 O.S. § 91 A.3.a</span>) — logged per case, so the sale file proves itself. In this demo, photo entries record the file name; the photos themselves stay on your device.</p>
+  <div class="toolbar">
+    <div style="flex:1; min-width:220px;"><label class="flabel" for="pfCase">Case</label><select id="pfCase"></select></div>
+  </div>
+  <div id="pfList"></div>
+  <div class="formcard">
+    <h3>Add a proof entry</h3>
+    <div class="err" id="pfErr"></div>
+    <div class="grid2">
+      <div class="field"><label class="flabel" for="pfKind">Kind</label>
+        <select id="pfKind">
+          <option value="posting">Notice of Sale posting (public place)</option>
+          <option value="photo">Vehicle photo</option>
+          <option value="ticket">Tow ticket / authorization on file</option>
+          <option value="receipt">Certified-mail receipt / green card</option>
+          <option value="record">Service Oklahoma record response</option>
+          <option value="other">Other</option>
+        </select></div>
+      <div class="field"><label class="flabel" for="pfDate">Date</label><input type="date" id="pfDate"></div>
+      <div class="field"><label class="flabel" for="pfLabel">Label *</label><div class="fieldrow"><div class="grow"><input type="text" id="pfLabel" placeholder="e.g. Delaware County Courthouse bulletin board"></div><button class="micbtn" data-mic="pfLabel" title="Voice entry" aria-label="Voice entry for label">🎤</button></div></div>
+      <div class="field"><label class="flabel" for="pfPhoto">Photo file (optional — name logged only)</label><input type="file" id="pfPhoto" accept="image/*"></div>
+    </div>
+    <div class="field"><label class="flabel" for="pfNote">Note</label><div class="fieldrow"><div class="grow"><input type="text" id="pfNote" placeholder="Anything the file should remember about this proof"></div><button class="micbtn" data-mic="pfNote" title="Voice entry" aria-label="Voice entry for note">🎤</button></div></div>
+    <button class="btn" id="pfAddBtn">Add proof entry</button>
+  </div>
+</section>
+
+<!-- ============ PACKET ============ -->
+<section class="panel" id="view-packet">
+  <h2>Sale &amp; title packet — assembled from the case file</h2>
+  <p class="pdesc">When the sale is done, this is the packet: bill-of-sale worksheet, title-application worksheet, and the fee tally — with the storage math shown the way § 91 allows it, and anything TowPacket can't source marked <b>verify</b> instead of invented. You sign it, you file it with Service Oklahoma, you pay the state fee. The packet never files itself.</p>
+  <div class="toolbar">
+    <div style="flex:1; min-width:220px;"><label class="flabel" for="pkCase">Case</label><select id="pkCase"></select></div>
+    <button class="btn blue" id="pkPrintBtn">Print the packet</button>
+    <button class="btn secondary" id="pkMarkBtn">Mark packet printed</button>
+  </div>
+  <div id="pkBody"></div>
+</section>
+
+<!-- ============ ARCHIVE ============ -->
+<section class="panel" id="view-archive">
+  <h2>Archive — closed case files</h2>
+  <p class="pdesc">Sold and released vehicles, with the whole file intact: what was charged, what the law allowed, what the sale brought, and how complete the packet was. If anyone ever questions a sale, this is the file that answers.</p>
+  <div class="tablewrap">
+  <table>
+    <thead><tr><th>Vehicle</th><th>Outcome</th><th>Closed</th><th>Total claimed</th><th>Sale price</th><th>Net</th><th>Packet</th><th>Actions</th></tr></thead>
+    <tbody id="archBody"></tbody>
+  </table>
+  </div>
+  <div class="empty" id="archEmpty" style="display:none;">No closed cases yet. Close a case from its Timeline screen and it lands here.</div>
+</section>
+
+<!-- ============ PRICING & PILOT ============ -->
+<section class="panel" id="view-pricing">
+  <h2>Pricing</h2>
+  <p class="pdesc">The done-for-you services charge per vehicle, forever — $295 a car in Kentucky, $45–$225 in Oregon and New York — and the big DMV-data platforms sell to counties, not to a 6-truck yard. TowPacket is the deadline clock and the packet, priced for the yard that actually holds the cars.</p>
+  <div class="pricegrid">
+    <div class="pricecard">
+      <div class="lbl" style="font-size:12px; text-transform:uppercase; letter-spacing:.7px; color:var(--mut); font-weight:700;">TowPacket (self-serve)</div>
+      <div class="price">$149<span style="font-size:16px; color:var(--mut);">/mo</span></div>
+      <ul>
+        <li><b>+$15 per vehicle packet</b> assembled — only when a packet is built</li>
+        <li>Every unclaimed vehicle on one statutory clock, Oklahoma rules built in</li>
+        <li>Every computed date carries its <b>statute citation</b> on screen</li>
+        <li>Notice letters auto-filled; certified-mail and proof logs per case</li>
+        <li>Sale &amp; title packet assembled at the end — you sign and file</li>
+        <li>Prepare-and-owner-files, always: we never hold your state credentials</li>
+      </ul>
+    </div>
+    <div class="pricecard">
+      <div class="lbl" style="font-size:12px; text-transform:uppercase; letter-spacing:.7px; color:var(--mut); font-weight:700;">Done-for-you (we run it)</div>
+      <div class="price">$95<span style="font-size:16px; color:var(--mut);">/vehicle</span></div>
+      <ul>
+        <li>Send a photo of the tow ticket — we build and chase the whole packet</li>
+        <li>Owner/lienholder lookups from <b>your</b> Service Oklahoma access, your data</li>
+        <li>Notices drafted, deadlines watched, packet assembled in order</li>
+        <li>You sign, you file, you pay the state — the legal acts stay yours</li>
+        <li>One status page: every vehicle, where it stands, what happens next</li>
+      </ul>
+    </div>
+  </div>
+  <div class="formcard">
+    <h3>Pilot — your first 5 vehicle packets, free-prepped</h3>
+    <p style="font-size:13.5px; margin-bottom:12px;">We prep the first 5 packets free. After that, the pilot month runs at <b>$49/packet</b> — then standard pricing only if you say so. The pilot is how we prove the clock on your lot, not a contract.</p>
+    <div class="grid2">
+      <div class="field"><label class="flabel" for="pilotName">Your name</label><div class="fieldrow"><div class="grow"><input type="text" id="pilotName" placeholder="e.g. Walt Pruitt"></div><button class="micbtn" data-mic="pilotName" title="Voice entry" aria-label="Voice entry for your name">🎤</button></div></div>
+      <div class="field"><label class="flabel" for="pilotCompany">Yard / company</label><div class="fieldrow"><div class="grow"><input type="text" id="pilotCompany" placeholder="e.g. Route 66 Recovery LLC"></div><button class="micbtn" data-mic="pilotCompany" title="Voice entry" aria-label="Voice entry for company">🎤</button></div></div>
+      <div class="field"><label class="flabel" for="pilotEmail">Email</label><div class="microw"><input type="email" id="pilotEmail" placeholder="you@company.com"><button type="button" class="micbtn" data-mic="pilotEmail" aria-label="Speak your email">🎤</button></div></div>
+      <div class="field"><label class="flabel" for="pilotVehicles">Vehicles sitting unclaimed right now?</label><div class="microw"><input type="number" id="pilotVehicles" min="0" placeholder="e.g. 8"><button type="button" class="micbtn" data-mic="pilotVehicles" aria-label="Speak how many unclaimed vehicles">🎤</button></div></div>
+    </div>
+    <div class="checkrow"><input type="checkbox" id="pilotTerms"><label for="pilotTerms">I understand this requests the TowPacket pilot: TowPacket prepares packets from the tow tickets and records I provide, I stay the claimant — I sign, file, and pay the state myself — and nothing is billed until we confirm the pilot by email.</label></div>
+    <button class="btn" id="pilotSubmit" disabled>Send pilot request</button>
+    <p style="font-size:12.5px; color:var(--mut); margin-top:10px;">Sending opens your own mail app, addressed to our back office. Nothing is charged and nothing is sent until you press send there.</p>
+  </div>
+</section>
+
+<!-- ============ HELP ============ -->
+<section class="panel" id="view-help">
+  <h2>Help</h2>
+  <p class="pdesc">The short version of everything TowPacket does.</p>
+  <details><summary>How do I start a case?</summary><p>On the <b>New Case</b> tab, enter the vehicle off the tow ticket — VIN and tow date are what start the clock. In the live product you snap a photo of the ticket and the fields fill from it. The answer to "How did it get here?" picks the legal track: law-enforcement directed and § 954A tows run under 47 O.S. § 954A / 42 O.S. § 91A; everything else runs under the possessory-lien process at 42 O.S. § 91.</p></details>
+  <details><summary>What do the statutes on every date mean?</summary><p>Every deadline TowPacket computes names the Oklahoma statute it comes from — for example, the Notice of Possessory Lien must be mailed no later than 60 days after the first services <span class="cite">42 O.S. § 91 A.4</span>, and storage charges may only be assessed beginning the day that notice is mailed <span class="cite">42 O.S. § 91 A.5</span>. Where the law or the current state form can't be sourced, the app shows a <b>verify</b> flag instead of a confident date — check the current Service Oklahoma form before acting on a flagged step.</p></details>
+  <details><summary>What does TowPacket do — and not do?</summary><p>TowPacket <b>prepares</b>: timelines, notice letters, mail and proof logs, and the sale &amp; title packet. It does not file anything, sign anything, certify anything, or hold your Service Oklahoma credentials — the owner signs (the lien notice signature is notarized), files, and pays the state. It is a preparation tool, not legal advice; for a disputed case, talk to an Oklahoma attorney.</p></details>
+  <details><summary>How do the notices work?</summary><p>On the <b>Notices</b> tab, pick the case and the letter. The letter fills from the case file with the statute's content checklist beside it. Print it, sign and notarize where the checklist says, mail it both ways the statute requires (first-class <i>and</i> certified, return receipt requested), then log the mailings — the certified date drives the timeline.</p></details>
+  <details><summary>What is the "protected storage" number?</summary><p>Under <span class="cite">42 O.S. § 91 A.5</span>, storage charges on the § 91 track may only be assessed beginning the day the Notice of Possessory Lien is mailed. Days before that mailing are <b>unprotected</b> — the car sat, but the storage isn't chargeable under the lien. Mail the notice early and the protected count starts early. Storage is also capped: the maximum allowable compensation for storage shall not exceed the fees established by the Corporation Commission for nonconsensual tows <span class="cite">42 O.S. § 91 A.5</span> — TowPacket uses <i>your</i> entered rate and flags the cap; verify your rate against the current Commission schedule.</p></details>
+  <details><summary>Where does my data live? How do I back it up?</summary><p>In this demo edition, everything lives <b>on this device, in this browser</b> — no account, nothing uploaded. Export the lot board CSV from the Lot Board to keep a dated copy, print packets as you complete them, and use Reset below to restore the fictional sample data or Clear to empty the app. Clearing your browser's site data erases the cases, so export before you do.</p></details>
+  <div class="toolbar" style="margin-top:16px;">
+    <a class="btn" id="emailUsBtn" href="mailto:whitewolfbackoffice@gmail.com?subject=TowPacket%20help%20%E2%80%94%20v0.1.0-demo&amp;body=Tell%20us%20what%20you%20were%20trying%20to%20do%20and%20what%20happened%3A%0A%0A">Email us</a>
+    <button class="btn secondary" id="resetDataBtn">Reset demo data</button>
+    <button class="btn danger" id="clearDataBtn">Clear demo data</button>
+  </div>
+  <p style="font-size:12.5px; color:var(--mut);">TowPacket prepares lien and title paperwork. It is not a law firm and does not give legal advice, interpret statutes for your specific facts, or file, sign, or certify anything — the yard owner is the claimant and stays the claimant.</p>
+</section>
+</main>
+<footer>
+  <div><b>TowPacket</b> — a White Wolf Apps product. Questions or the pilot: whitewolfbackoffice@gmail.com</div>
+  <div style="margin-top:6px;">Demo build v0.1.0-demo · All companies, people, vehicles, and records shown are fictional sample data. Works offline; no account; your data stays on this device.</div>
+</footer>
+<div id="toast"></div>
+<div id="printArea"></div>
+
+<script>
+var VERSION = "v0.1.0-demo";
+var LS_KEY = "towpacket_demo_v1";
+var state = null;
+var selectedCaseId = null;
+
+function $(id){ return document.getElementById(id); }
+function esc(v){ return String(v==null?"":v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function money(n){ return "$" + Number(n||0).toLocaleString("en-US"); }
+function toast(msg){ var t = $("toast"); t.textContent = msg; t.style.display = "block"; clearTimeout(t._h); t._h = setTimeout(function(){ t.style.display = "none"; }, 3400); }
+function dISO(d){ var p = function(n){ return (n<10?"0":"") + n; }; return d.getFullYear() + "-" + p(d.getMonth()+1) + "-" + p(d.getDate()); }
+function daysFromNow(n){ var d = new Date(); d.setDate(d.getDate()+n); return dISO(d); }
+function todayISO(){ return dISO(new Date()); }
+function fmtDate(iso){ if(!iso) return "—"; var d = new Date(iso+"T00:00:00"); return d.toLocaleDateString("en-US",{month:"short", day:"numeric", year:"numeric"}); }
+function plural(n, w){ return n + " " + w + (n===1?"":"s"); }
+/* pure date math (ISO in, ISO/number out) — the legal engine and QA both run on these */
+function addDays(iso, n){
+  if(!isValidDateString(iso) || typeof n !== "number" || !isFinite(n)) return null;
+  var d = new Date(iso+"T00:00:00"); d.setDate(d.getDate() + Math.round(n)); return dISO(d);
+}
+function daysBetween(aIso, bIso){
+  if(!isValidDateString(aIso) || !isValidDateString(bIso)) return null;
+  var a = new Date(aIso+"T00:00:00"), b = new Date(bIso+"T00:00:00");
+  return Math.round((b - a)/86400000);
+}
+function diffDays(iso){ var t = todayISO(); return isValidDateString(iso) ? daysBetween(t, iso) : null; }
+function isBizDay(iso){ var d = new Date(iso+"T00:00:00"); var w = d.getDay(); return w >= 1 && w <= 5; }
+function addBizDays(iso, n){
+  if(!isValidDateString(iso) || typeof n !== "number" || !isFinite(n)) return null;
+  var d = iso, step = n >= 0 ? 1 : -1, left = Math.abs(Math.round(n));
+  while(left > 0){ d = addDays(d, step); if(isBizDay(d)) left--; }
+  return d;
+}
+function daysPhrase(d){ if(d===null || d===undefined) return "—"; if(d<0) return plural(-d,"day") + " ago"; if(d===0) return "today"; return "in " + plural(d,"day"); }
+function vehLabel(c){ return ((c.year?c.year+" ":"") + c.make + (c.model?" "+c.model:"")).trim() || "Unknown vehicle"; }
+
+/* ---------- seed data (all fictional) ---------- */
+function ML(kind, party, method, date, tracking){ return {kind:kind, party:party, method:method, date:date, tracking:tracking||""}; }
+function PL(kind, label, date, note){ return {kind:kind, label:label, date:date, note:note||""}; }
+function seedData(){
+  var lid = 1;
+  function logs(arr){ return arr.map(function(e){ e.id = lid++; return e; }); }
+  var cases = [
+    { id:1, vin:"1FTEX1EP7GFA10293", year:2016, make:"Ford", model:"F-150", color:"White", plate:"OK LKR-204", towDate:daysFromNow(-71), towType:"consensual", requestedBy:"Owner (motor club dispatch)", towFrom:"US-59 mile 12, Grove", ticketNo:"T-4471",
+      ownerName:"Marcus Delaney", ownerAddr:"88 W 3rd St, Grove, OK 74344", lienName:"", lienAddr:"", recordsRequested:daysFromNow(-69), recordsReceived:daysFromNow(-66),
+      noplMailed:daysFromNow(-39), proceedingsDate:daysFromNow(-20), nosPosted:daysFromNow(-9), nosMailed:daysFromNow(-9), locMailed:null, saleDate:daysFromNow(1), salePrice:null, closed:"", closedDate:null, lienResponse:"",
+      serviceCharges:185, storageRate:25, mailFee:8, titleFee:0, packetPrinted:false,
+      mailLog:logs([ML("NOPL","Marcus Delaney (owner)","certified",daysFromNow(-39),"9407 3000 0000 4410 2281"), ML("NOPL","Marcus Delaney (owner)","firstclass",daysFromNow(-39),""), ML("NOS","Marcus Delaney (owner)","certified",daysFromNow(-9),"9407 3000 0000 4410 3055"), ML("NOS","Marcus Delaney (owner)","firstclass",daysFromNow(-9),"")]),
+      proofLog:logs([PL("ticket","Tow ticket T-4471",daysFromNow(-71),"Signed motor-club authorization"), PL("photo","Arrival photos (4)",daysFromNow(-71),"Dash VIN photo included"), PL("posting","Delaware County Courthouse bulletin board",daysFromNow(-9),"Notice of Sale posting — place 1 of 2"), PL("posting","Grove City Hall lobby board",daysFromNow(-9),"Notice of Sale posting — place 2 of 2"), PL("receipt","NOPL green card (Form 3811)",daysFromNow(-35),"Signed by M. Delaney")]),
+      notes:"Owner called once, said he'd be in Friday. Never came." },
+    { id:2, vin:"4T1B11HK5KU770412", year:2019, make:"Toyota", model:"Camry", color:"Silver", plate:"OK BXR-881", towDate:daysFromNow(-95), towType:"consensual", requestedBy:"Owner", towFrom:"Walmart lot, Grove", ticketNo:"T-4310",
+      ownerName:"Elena Vasquez", ownerAddr:"1204 S Cherokee St, Grove, OK 74344", lienName:"", lienAddr:"", recordsRequested:daysFromNow(-93), recordsReceived:daysFromNow(-90),
+      noplMailed:daysFromNow(-70), proceedingsDate:daysFromNow(-55), nosPosted:daysFromNow(-18), nosMailed:daysFromNow(-18), locMailed:null, saleDate:daysFromNow(4), salePrice:null, closed:"", closedDate:null, lienResponse:"",
+      serviceCharges:150, storageRate:25, mailFee:8, titleFee:25, packetPrinted:false,
+      mailLog:logs([ML("NOPL","Elena Vasquez (owner)","certified",daysFromNow(-70),"9407 3000 0000 4410 1177"), ML("NOPL","Elena Vasquez (owner)","firstclass",daysFromNow(-70),""), ML("NOS","Elena Vasquez (owner)","certified",daysFromNow(-18),"9407 3000 0000 4410 2960"), ML("NOS","Elena Vasquez (owner)","firstclass",daysFromNow(-18),"")]),
+      proofLog:logs([PL("ticket","Tow ticket T-4310",daysFromNow(-95),""), PL("photo","Arrival photos (3)",daysFromNow(-95),""), PL("posting","Delaware County Courthouse bulletin board",daysFromNow(-18),"Notice of Sale posting — place 1 of 2"), PL("posting","Grove Post Office lobby board",daysFromNow(-18),"Notice of Sale posting — place 2 of 2")]),
+      notes:"" },
+    { id:3, vin:"1C4RJFBG8FC611209", year:2015, make:"Jeep", model:"Grand Cherokee", color:"Black", plate:"OK JMN-317", towDate:daysFromNow(-38), towType:"consensual", requestedBy:"Owner", towFrom:"Hwy 10, Jay", ticketNo:"T-4520",
+      ownerName:"Tyler Redbird", ownerAddr:"PO Box 412, Jay, OK 74346", lienName:"Sooner Auto Finance", lienAddr:"2200 S Harvard Ave, Tulsa, OK 74114", recordsRequested:daysFromNow(-36), recordsReceived:daysFromNow(-33),
+      noplMailed:daysFromNow(-12), proceedingsDate:null, nosPosted:null, nosMailed:null, locMailed:null, saleDate:null, salePrice:null, closed:"", closedDate:null, lienResponse:"inspection",
+      serviceCharges:210, storageRate:25, mailFee:8, titleFee:0, packetPrinted:false,
+      mailLog:logs([ML("NOPL","Tyler Redbird (owner)","certified",daysFromNow(-12),"9407 3000 0000 4410 3502"), ML("NOPL","Tyler Redbird (owner)","firstclass",daysFromNow(-12),""), ML("NOPL","Sooner Auto Finance (lienholder)","certified",daysFromNow(-12),"9407 3000 0000 4410 3519"), ML("NOPL","Sooner Auto Finance (lienholder)","firstclass",daysFromNow(-12),"")]),
+      proofLog:logs([PL("ticket","Tow ticket T-4520",daysFromNow(-38),""), PL("photo","Arrival photos (5)",daysFromNow(-38),"Shows prior bumper damage")]),
+      notes:"Lienholder's agent asked to inspect the vehicle — § 91 A.9 inspection is their right before any sale." },
+    { id:4, vin:"1HGCV1F34LA044517", year:2021, make:"Honda", model:"Accord", color:"Blue", plate:"OK PZT-552", towDate:daysFromNow(-3), towType:"consensual", requestedBy:"Owner (motor club dispatch)", towFrom:"S 690 Rd, Grove", ticketNo:"T-4602",
+      ownerName:"Hannah Whitfield", ownerAddr:"771 E 290 Rd, Grove, OK 74344", lienName:"", lienAddr:"", recordsRequested:daysFromNow(-2), recordsReceived:null,
+      noplMailed:null, proceedingsDate:null, nosPosted:null, nosMailed:null, locMailed:null, saleDate:null, salePrice:null, closed:"", closedDate:null, lienResponse:"",
+      serviceCharges:165, storageRate:25, mailFee:8, titleFee:0, packetPrinted:false,
+      mailLog:logs([]),
+      proofLog:logs([PL("ticket","Tow ticket T-4602",daysFromNow(-3),"")]),
+      notes:"Fresh intake. Storage is NOT assessable yet — it starts the day the Notice of Possessory Lien is mailed (§ 91 A.5). Mail it early." },
+    { id:5, vin:"3GCPCREC4BG221730", year:2011, make:"Chevrolet", model:"Silverado", color:"Red", plate:"OK DWT-069", towDate:daysFromNow(-64), towType:"repair", requestedBy:"Owner (repair authorization)", towFrom:"Route 66 Recovery shop bay", ticketNo:"RO-1187",
+      ownerName:"Carl Janssen", ownerAddr:"RR 2 Box 88, Afton, OK 74331", lienName:"", lienAddr:"", recordsRequested:daysFromNow(-60), recordsReceived:daysFromNow(-57),
+      noplMailed:daysFromNow(-22), proceedingsDate:daysFromNow(-10), nosPosted:null, nosMailed:null, locMailed:null, saleDate:null, salePrice:null, closed:"", closedDate:null, lienResponse:"",
+      serviceCharges:640, storageRate:25, mailFee:8, titleFee:0, packetPrinted:false,
+      mailLog:logs([ML("NOPL","Carl Janssen (owner)","certified",daysFromNow(-22),"9407 3000 0000 4410 1985"), ML("NOPL","Carl Janssen (owner)","firstclass",daysFromNow(-22),"")]),
+      proofLog:logs([PL("ticket","Repair order RO-1187 (signed)",daysFromNow(-64),"Transmission rebuild, authorized"), PL("photo","Arrival photos (2)",daysFromNow(-64),"")]),
+      notes:"Repaired and never picked up. The lien notice went out on day 42 — timely, but 42 days of storage can never be charged (§ 91 A.5). The tally shows it." },
+    { id:6, vin:"2B3CL3CG7DH558104", year:2013, make:"Dodge", model:"Charger", color:"Gray", plate:"OK FGH-730", towDate:daysFromNow(-12), towType:"law", requestedBy:"Grove Police Department", towFrom:"E 3rd St, Grove (DUI arrest)", ticketNo:"LE-2214",
+      ownerName:"Devon Akins", ownerAddr:"19 N Elm St, Grove, OK 74344", lienName:"Grand Lake Credit Union", lienAddr:"1020 S Main St, Grove, OK 74344", recordsRequested:daysFromNow(-11), recordsReceived:daysFromNow(-6),
+      noplMailed:null, proceedingsDate:null, nosPosted:null, nosMailed:null, locMailed:null, saleDate:null, salePrice:null, closed:"", closedDate:null, lienResponse:"",
+      serviceCharges:195, storageRate:25, mailFee:8, titleFee:0, packetPrinted:false,
+      mailLog:logs([]),
+      proofLog:logs([PL("ticket","LE tow authorization LE-2214",daysFromNow(-12),"Officer signature on file"), PL("record","Service Oklahoma record response",daysFromNow(-6),"Owner + lienholder as shown")]),
+      notes:"§ 91A track — law-enforcement directed tow. The § 954A notice duties drive this file, not § 91." },
+    { id:7, vin:"1N4AL2AP8BC109366", year:2009, make:"Nissan", model:"Altima", color:"Tan", plate:"OK KRE-415", towDate:daysFromNow(-120), towType:"consensual", requestedBy:"Owner", towFrom:"Shangri-La turnout, Monkey Island", ticketNo:"T-3985",
+      ownerName:"Ruth Callahan", ownerAddr:"30450 S 595 Rd, Grove, OK 74344", lienName:"", lienAddr:"", recordsRequested:daysFromNow(-118), recordsReceived:daysFromNow(-115),
+      noplMailed:daysFromNow(-95), proceedingsDate:daysFromNow(-80), nosPosted:daysFromNow(-52), nosMailed:daysFromNow(-52), locMailed:null, saleDate:null, salePrice:null, closed:"", closedDate:null, lienResponse:"",
+      serviceCharges:175, storageRate:25, mailFee:8, titleFee:0, packetPrinted:false,
+      mailLog:logs([ML("NOPL","Ruth Callahan (owner)","certified",daysFromNow(-95),"9407 3000 0000 4410 0841"), ML("NOPL","Ruth Callahan (owner)","firstclass",daysFromNow(-95),""), ML("NOS","Ruth Callahan (owner)","certified",daysFromNow(-52),"9407 3000 0000 4410 2700"), ML("NOS","Ruth Callahan (owner)","firstclass",daysFromNow(-52),"")]),
+      proofLog:logs([PL("ticket","Tow ticket T-3985",daysFromNow(-120),""), PL("photo","Arrival photos (3)",daysFromNow(-120),""), PL("posting","Delaware County Courthouse bulletin board",daysFromNow(-52),"Notice of Sale posting — place 1 of 2"), PL("posting","Jay Post Office lobby board",daysFromNow(-52),"Notice of Sale posting — place 2 of 2")]),
+      notes:"Notice of Sale is out but no sale date is set — the sale must happen within 60 days of that notice (§ 91 A.11). The clock is talking." },
+    { id:8, vin:"1FAFP34N97W210885", year:2007, make:"Ford", model:"Taurus", color:"Green", plate:"OK TMB-902", towDate:daysFromNow(-150), towType:"consensual", requestedBy:"Owner", towFrom:"Hwy 59, Grove", ticketNo:"T-3511",
+      ownerName:"Walter Boone", ownerAddr:"PO Box 19, Grove, OK 74344", lienName:"", lienAddr:"", recordsRequested:daysFromNow(-148), recordsReceived:daysFromNow(-145),
+      noplMailed:daysFromNow(-125), proceedingsDate:daysFromNow(-110), nosPosted:daysFromNow(-100), nosMailed:daysFromNow(-100), locMailed:null, saleDate:daysFromNow(-85), salePrice:1400, closed:"sold", closedDate:daysFromNow(-85), lienResponse:"",
+      serviceCharges:150, storageRate:20, mailFee:8, titleFee:25, packetPrinted:true,
+      mailLog:logs([ML("NOPL","Walter Boone (owner)","certified",daysFromNow(-125),"9407 3000 0000 4410 0512"), ML("NOPL","Walter Boone (owner)","firstclass",daysFromNow(-125),""), ML("NOS","Walter Boone (owner)","certified",daysFromNow(-100),"9407 3000 0000 4410 0734"), ML("NOS","Walter Boone (owner)","firstclass",daysFromNow(-100),"")]),
+      proofLog:logs([PL("ticket","Tow ticket T-3511",daysFromNow(-150),""), PL("photo","Arrival photos (4)",daysFromNow(-150),""), PL("posting","Delaware County Courthouse bulletin board",daysFromNow(-100),"Notice of Sale posting — place 1 of 2"), PL("posting","Grove City Hall lobby board",daysFromNow(-100),"Notice of Sale posting — place 2 of 2"), PL("receipt","NOS green card (Form 3811)",daysFromNow(-96),"Returned signed")]),
+      notes:"Sold at the yard sale. Packet complete." }
+  ];
+  return {
+    yard:{name:"Route 66 Recovery LLC", address:"1420 S Main Street, Grove, OK 74344", contact:"Walt Pruitt, owner"},
+    cases:cases, nextCaseId:9, nextLogId:lid, termsAccepted:false
+  };
+}
+
+/* ---------- storage integrity: entry/field-level sanitize-on-load (BinderClock pattern, built in from day one) ---------- */
+function isPlainObject(x){ return !!x && typeof x === "object" && !Array.isArray(x); }
+function asStoredString(x){ return x === null || x === undefined ? "" : String(x); }
+function asTrimmedString(x, max){ var s = asStoredString(x).trim(); if(typeof max === "number" && s.length > max) s = s.slice(0, max); return s; }
+function asMoney(x, fallback){
+  var n = null;
+  if(typeof x === "number") n = x;
+  else if(typeof x === "string" && x.trim() !== "" && isFinite(Number(x))) n = Number(x);
+  return (n !== null && isFinite(n) && n >= 0) ? n : (fallback||0);
+}
+function asMoneyOrNull(x){ if(x === null || x === undefined || x === "") return null; var n = asMoney(x, -1); return n >= 0 ? n : null; }
+function asPositiveInteger(x){ return typeof x === "number" && isFinite(x) && Math.floor(x) === x && x > 0 ? x : null; }
+function isValidDateString(x){
+  if(typeof x !== "string") return false;
+  var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(x); if(!m) return false;
+  var year = Number(m[1]), month = Number(m[2]), day = Number(m[3]);
+  if(month < 1 || month > 12 || day < 1) return false;
+  var leap = (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
+  var days = [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  return day <= days[month-1];
+}
+function asDateOrNull(x){ return isValidDateString(x) ? x : null; }
+function asEnum(x, list, fallback){ return list.indexOf(x) >= 0 ? x : fallback; }
+var TOW_TYPES = ["consensual","repair","private","law"];
+var TRACKS = ["91","91A"];
+var LIEN_RESPONSES = ["", "inspection", "payoff", "pickedup", "none"];
+var CLOSED_STATES = ["", "sold", "released"];
+var MAIL_KINDS = ["NOPL","NOS","LOC"];
+var MAIL_METHODS = ["certified","firstclass"];
+var PROOF_KINDS = ["posting","photo","ticket","receipt","record","other"];
+function sanitizeMailLog(arr, idGen){
+  var out = [];
+  (Array.isArray(arr) ? arr : []).forEach(function(e){
+    if(!isPlainObject(e)) return;
+    if(!isValidDateString(e.date)) return;
+    out.push({id:idGen(), kind:asEnum(e.kind, MAIL_KINDS, "NOPL"), party:asTrimmedString(e.party, 120), method:asEnum(e.method, MAIL_METHODS, "certified"), date:e.date, tracking:asTrimmedString(e.tracking, 60)});
+  });
+  return out;
+}
+function sanitizeProofLog(arr, idGen){
+  var out = [];
+  (Array.isArray(arr) ? arr : []).forEach(function(e){
+    if(!isPlainObject(e)) return;
+    if(!isValidDateString(e.date)) return;
+    out.push({id:idGen(), kind:asEnum(e.kind, PROOF_KINDS, "other"), label:asTrimmedString(e.label, 160), date:e.date, note:asTrimmedString(e.note, 300)});
+  });
+  return out;
+}
+function sanitizeState(p){
+  var logCounter = 0;
+  function idGen(){ logCounter++; return -logCounter; } /* temp ids, renumbered below */
+  var cases = [], seenIds = {};
+  (Array.isArray(p.cases) ? p.cases : []).forEach(function(c){
+    if(!isPlainObject(c)) return;
+    var id = asPositiveInteger(c.id);
+    if(id === null || seenIds[id]) return;
+    if(!isValidDateString(c.towDate)) return; /* a clock with no start date is not a case */
+    var vin = asTrimmedString(c.vin, 40);
+    if(!vin) return;
+    seenIds[id] = true;
+    var towType = asEnum(c.towType, TOW_TYPES, "consensual");
+    var track = asEnum(c.track, TRACKS, towType === "law" ? "91A" : "91");
+    var year = asPositiveInteger(c.year);
+    if(year !== null && (year < 1900 || year > 2100)) year = null;
+    cases.push({
+      id:id, vin:vin, year:year, make:asTrimmedString(c.make, 40), model:asTrimmedString(c.model, 40), color:asTrimmedString(c.color, 30), plate:asTrimmedString(c.plate, 20),
+      towDate:c.towDate, towType:towType, track:track,
+      requestedBy:asTrimmedString(c.requestedBy, 120), towFrom:asTrimmedString(c.towFrom, 160), ticketNo:asTrimmedString(c.ticketNo, 40),
+      ownerName:asTrimmedString(c.ownerName, 120), ownerAddr:asTrimmedString(c.ownerAddr, 200),
+      lienName:asTrimmedString(c.lienName, 120), lienAddr:asTrimmedString(c.lienAddr, 200),
+      recordsRequested:asDateOrNull(c.recordsRequested), recordsReceived:asDateOrNull(c.recordsReceived),
+      noplMailed:asDateOrNull(c.noplMailed), proceedingsDate:asDateOrNull(c.proceedingsDate),
+      nosPosted:asDateOrNull(c.nosPosted), nosMailed:asDateOrNull(c.nosMailed), locMailed:asDateOrNull(c.locMailed),
+      saleDate:asDateOrNull(c.saleDate), salePrice:asMoneyOrNull(c.salePrice),
+      closed:asEnum(c.closed, CLOSED_STATES, ""), closedDate:asDateOrNull(c.closedDate),
+      lienResponse:asEnum(c.lienResponse, LIEN_RESPONSES, ""),
+      serviceCharges:asMoney(c.serviceCharges, 0), storageRate:asMoney(c.storageRate, 0), mailFee:asMoney(c.mailFee, 0), titleFee:asMoney(c.titleFee, 0),
+      packetPrinted: c.packetPrinted === true,
+      mailLog:sanitizeMailLog(c.mailLog, idGen), proofLog:sanitizeProofLog(c.proofLog, idGen),
+      notes:asTrimmedString(c.notes, 2000)
+    });
+  });
+  /* renumber log ids cleanly, in stored order, and heal the counter */
+  var lid = 1;
+  cases.forEach(function(c){ c.mailLog.forEach(function(e){ e.id = lid++; }); c.proofLog.forEach(function(e){ e.id = lid++; }); });
+  var maxCaseId = cases.reduce(function(m, c){ return Math.max(m, c.id); }, 0);
+  var nextCaseId = asPositiveInteger(p.nextCaseId);
+  if(nextCaseId === null || nextCaseId <= maxCaseId) nextCaseId = maxCaseId + 1;
+  var nextLogId = asPositiveInteger(p.nextLogId);
+  if(nextLogId === null || nextLogId < lid) nextLogId = lid;
+  var yard = {name:"Route 66 Recovery LLC", address:"", contact:""};
+  if(isPlainObject(p.yard)){ yard.name = asTrimmedString(p.yard.name, 120) || yard.name; yard.address = asTrimmedString(p.yard.address, 200); yard.contact = asTrimmedString(p.yard.contact, 120); }
+  return {yard:yard, cases:cases, nextCaseId:nextCaseId, nextLogId:nextLogId, termsAccepted:p.termsAccepted === true};
+}
+function load(){
+  try{ var raw = localStorage.getItem(LS_KEY); if(raw){ var p = JSON.parse(raw); if(isPlainObject(p) && Array.isArray(p.cases)){ var healed = sanitizeState(p); save(healed); return healed; } } }catch(e){}
+  var s = sanitizeState(seedData()) || seedData(); save(s); return s;
+}
+function save(s){ try{ localStorage.setItem(LS_KEY, JSON.stringify(s||state)); }catch(e){} }
+function findCase(id){ for(var i=0;i<state.cases.length;i++){ if(state.cases[i].id === id) return state.cases[i]; } return null; }
+function selectedCase(){ var c = selectedCaseId ? findCase(selectedCaseId) : null; if(!c && state.cases.length) c = state.cases[0]; return c; }
+
+/* ---------- the legal engine (pure — every date traceable to a citation) ---------- */
+var CITE = {
+  nopl: "42 O.S. § 91 A.4", storage: "42 O.S. § 91 A.5", window: "42 O.S. § 91 A.11",
+  nosPost: "42 O.S. § 91 A.7", saleBy: "42 O.S. § 91 A.11", denial: "42 O.S. § 91 A.3",
+  parties: "42 O.S. § 91 A.8", inspect: "42 O.S. § 91 A.9",
+  req954a: "47 O.S. § 954A G", loc954a: "47 O.S. § 954A G"
+};
+function endRef(c, today){ return c.closed ? (c.closedDate || today) : today; }
+function protectedDays(c, today){
+  if(c.track !== "91" || !c.noplMailed) return 0;
+  var n = daysBetween(c.noplMailed, endRef(c, today));
+  return n === null ? 0 : Math.max(0, n + 1); /* counting the mailing day itself — § 91 A.5: charges begin "beginning with the day" the notice is mailed */
+}
+function unprotectedDays(c, today){
+  if(c.track !== "91") return 0;
+  var end = c.noplMailed || endRef(c, today);
+  var n = daysBetween(c.towDate, end);
+  return n === null ? 0 : Math.max(0, n);
+}
+function certifiedMailCount(c){ return c.mailLog.filter(function(e){ return e.method === "certified"; }).length; }
+function feeTally(c, today){
+  var pd = protectedDays(c, today), ud = unprotectedDays(c, today);
+  var storageAssessable = c.track === "91" ? pd * c.storageRate : 0;
+  var storageUnprotected = c.track === "91" ? ud * c.storageRate : 0;
+  var mail = certifiedMailCount(c) * c.mailFee;
+  var total = c.serviceCharges + storageAssessable + mail + c.titleFee;
+  return {service:c.serviceCharges, protectedDays:pd, unprotectedDays:ud, storageRate:c.storageRate,
+    storageAssessable:storageAssessable, storageUnprotected:storageUnprotected,
+    certifiedCount:certifiedMailCount(c), mailFee:c.mailFee, mail:mail, titleFee:c.titleFee, total:total,
+    salePrice:c.salePrice, net:(c.salePrice === null ? null : total - c.salePrice)};
+}
+function M(key, label, cite, state, due, doneDate, detail){ return {key:key, label:label, cite:cite, state:state, due:due||null, doneDate:doneDate||null, detail:detail||""}; }
+function timeline(c, today){
+  var miles = [];
+  if(c.track === "91"){
+    var noplDue = addDays(c.towDate, 60);
+    if(c.noplMailed){
+      var late = daysBetween(noplDue, c.noplMailed) > 0;
+      miles.push(M("nopl","Mail the Notice of Possessory Lien", CITE.nopl, "done", noplDue, c.noplMailed,
+        "Mailed " + fmtDate(c.noplMailed) + (late ? " — " + plural(daysBetween(noplDue, c.noplMailed),"day") + " AFTER the 60-day deadline. A late notice can subordinate the lien and draw a title-application denial (" + CITE.denial + ") — verify the effect before proceeding." : " — inside the 60-day window (day " + (daysBetween(c.towDate, c.noplMailed)) + " of 60).")));
+    } else {
+      miles.push(M("nopl","Mail the Notice of Possessory Lien", CITE.nopl, daysBetween(today, noplDue) < 0 ? "late" : "due", noplDue, null,
+        "Mail by first-class mail AND certified mail, return receipt requested, to every interested party (" + CITE.parties + "). Storage charges cannot be assessed until this is mailed (" + CITE.storage + ")."));
+    }
+    if(c.noplMailed){
+      miles.push(M("storage","Storage charges begin", CITE.storage, "done", c.noplMailed, c.noplMailed,
+        "Assessable from " + fmtDate(c.noplMailed) + " — " + protectedDays(c, today) + " protected day(s) so far at your rate. " + unprotectedDays(c, today) + " earlier lot day(s) are not assessable. Storage is capped at the Corporation Commission's nonconsensual-tow schedule (" + CITE.storage + ") — verify your rate against it."));
+    } else {
+      miles.push(M("storage","Storage charges begin", CITE.storage, "waiting", null, null,
+        "Not yet — storage is $0 assessable until the Notice of Possessory Lien is mailed (" + CITE.storage + "). Every day of delay is a day of free parking."));
+    }
+    if(c.noplMailed){
+      var wOpen = addDays(c.noplMailed, 10), wClose = addDays(c.noplMailed, 30);
+      if(c.proceedingsDate){
+        var pLate = daysBetween(wOpen, c.proceedingsDate) < 0 || daysBetween(c.proceedingsDate, wClose) < 0;
+        miles.push(M("window","Commence foreclosure proceedings", CITE.window, "done", wClose, c.proceedingsDate,
+          "Commenced " + fmtDate(c.proceedingsDate) + (pLate ? " — OUTSIDE the 10–30 day window (" + fmtDate(wOpen) + " – " + fmtDate(wClose) + "). Verify the effect with Service Oklahoma before relying on this file." : " — inside the window (" + fmtDate(wOpen) + " – " + fmtDate(wClose) + ").")));
+      } else if(daysBetween(today, wClose) < 0){
+        miles.push(M("window","Commence foreclosure proceedings", CITE.window, "verify", wClose, null,
+          "The 10–30 day window (" + fmtDate(wOpen) + " – " + fmtDate(wClose) + ") has passed with no commencement recorded. TowPacket does not guess the consequence — verify the correct next step with Service Oklahoma before acting."));
+      } else {
+        miles.push(M("window","Commence foreclosure proceedings", CITE.window, daysBetween(today, wOpen) > 0 ? "waiting" : "due", wClose, null,
+          "Window: " + fmtDate(wOpen) + " – " + fmtDate(wClose) + ". Proceedings (for example, filing the title application with Service Oklahoma) must be commenced no sooner than 10 and no later than 30 days after the lien notice was mailed."));
+      }
+    }
+    if(c.nosPosted || c.nosMailed){
+      var base = (c.nosPosted && c.nosMailed) ? (c.nosPosted > c.nosMailed ? c.nosPosted : c.nosMailed) : (c.nosPosted || c.nosMailed);
+      var earliest = addDays(base, 10);
+      var both = !!(c.nosPosted && c.nosMailed);
+      miles.push(M("nos","Notice of Sale — posted & mailed 10+ days before the sale", CITE.nosPost, both ? "done" : "due", earliest, c.nosMailed || c.nosPosted,
+        (both ? "Posted " + fmtDate(c.nosPosted) + " in two public places and mailed " + fmtDate(c.nosMailed) + " (first-class + certified). Earliest lawful sale date: " + fmtDate(earliest) + "."
+              : "Half done: " + (c.nosPosted ? "posted " + fmtDate(c.nosPosted) : "mailed " + fmtDate(c.nosMailed)) + " — the statute requires BOTH posting in two public places AND mailing, each at least 10 days before the sale.")));
+      if(c.nosMailed){
+        var saleBy = addDays(c.nosMailed, 60);
+        var sold = c.closed === "sold";
+        miles.push(M("saleby","Complete the sale within 60 days of the Notice of Sale", CITE.saleBy, sold ? "done" : (daysBetween(today, saleBy) < 0 ? "late" : "due"), saleBy, sold ? (c.saleDate || c.closedDate) : null,
+          sold ? "Sold " + fmtDate(c.saleDate || c.closedDate) + " — inside the 60-day completion window (deadline was " + fmtDate(saleBy) + ")."
+               : "The sale must actually happen by " + fmtDate(saleBy) + (c.saleDate ? (daysBetween(saleBy, c.saleDate) > 0 ? " — WARNING: the sale is set for " + fmtDate(c.saleDate) + ", which is AFTER this 60-day limit. Move the sale up or verify before advertising it." : " — sale is set for " + fmtDate(c.saleDate) + ", inside the limit.") : " — no sale date is set yet.")));
+      }
+    } else if(c.noplMailed){
+      miles.push(M("nos","Notice of Sale — posted & mailed 10+ days before the sale", CITE.nosPost, "waiting", null, null,
+        "When you are ready to sell: post the notice in two public places in the county and mail it to every interested party (first-class + certified), each at least 10 days before the sale date."));
+    }
+    if(c.lienResponse === "inspection"){
+      miles.push(M("inspect","Lienholder asked to inspect the vehicle", CITE.inspect, "due", null, null,
+        "An interested party may inspect and verify the services during normal business hours before any sale, and a lienholder who proves its lien and pays the lawful charges may retrieve the vehicle (" + CITE.inspect + "). Log the outcome in the case notes."));
+    }
+  } else {
+    var reqDue = addBizDays(c.towDate, 3);
+    if(c.recordsRequested){
+      miles.push(M("req91a","Request the owner/lienholder record", CITE.req954a, "done", reqDue, c.recordsRequested,
+        "Requested " + fmtDate(c.recordsRequested) + " — the Class AA wrecker must ask Service Oklahoma (formerly the Tax Commission) for the owner and lienholder record within 3 business days of the tow. (Business days here skip weekends; state holidays are not excluded — verify if a holiday fell inside the window.)"));
+    } else {
+      miles.push(M("req91a","Request the owner/lienholder record", CITE.req954a, daysBetween(today, reqDue) < 0 ? "late" : "due", reqDue, null,
+        "Due within 3 business days of the tow (weekends skipped; state holidays not excluded — verify). Without the record there is nobody to notice."));
+    }
+    if(c.recordsReceived){
+      var locDue = addDays(c.recordsReceived, 7);
+      if(c.locMailed){
+        var locLate = daysBetween(locDue, c.locMailed) > 0;
+        miles.push(M("loc91a","Send the notice of the vehicle's location", CITE.loc954a, "done", locDue, c.locMailed,
+          "Mailed (certified) " + fmtDate(c.locMailed) + (locLate ? " — AFTER the 7-day deadline (" + fmtDate(locDue) + "). Under " + CITE.loc954a + ", an owner or lienholder who did not get the required notice is not required to pay storage — verify the effect on this file before billing storage." : " — within 7 days of receiving the record (" + fmtDate(c.recordsReceived) + ").")));
+      } else {
+        miles.push(M("loc91a","Send the notice of the vehicle's location", CITE.loc954a, daysBetween(today, locDue) < 0 ? "late" : "due", locDue, null,
+          "Record received " + fmtDate(c.recordsReceived) + " — the certified-mail notice of the vehicle's location is due to the owner and any lienholder within 7 days of receipt. Miss it and the owner/lienholder is not required to pay storage (" + CITE.loc954a + ")."));
+      }
+    } else {
+      miles.push(M("loc91a","Send the notice of the vehicle's location", CITE.loc954a, "waiting", null, null,
+        "Starts when the record comes back: certified-mail notice due within 7 days of receipt (" + CITE.loc954a + ")."));
+    }
+    miles.push(M("downstream","Lien foreclosure & title steps", "42 O.S. § 91A", "verify", null, null,
+      "TowPacket does not compute these dates. Law-enforcement and § 954A tows foreclose under 42 O.S. § 91A, not § 91 — verify the current steps, forms, and waiting periods with Service Oklahoma / the Department of Public Safety before acting on this file."));
+  }
+  /* next deadline: missed first, then verify-window, then nearest dated obligation */
+  var next = null;
+  miles.forEach(function(m){ if(m.state === "late" && m.due && (!next || m.due < next.date)) next = {label:m.label, date:m.due, days:daysBetween(today, m.due), cite:m.cite, sev:3}; });
+  if(!next) miles.forEach(function(m){ if(m.state === "verify" && m.due && (!next || m.due < next.date)) next = {label:m.label + " — window passed, verify next step", date:m.due, days:daysBetween(today, m.due), cite:m.cite, sev:2}; });
+  if(!next){
+    var cands = [];
+    miles.forEach(function(m){ if(m.state === "due" && m.due) cands.push({label:m.label, date:m.due, cite:m.cite}); });
+    if(!c.closed && c.saleDate && daysBetween(today, c.saleDate) >= 0) cands.push({label:"Sale date", date:c.saleDate, cite:CITE.nosPost});
+    cands.sort(function(a,b){ return a.date < b.date ? -1 : 1; });
+    if(cands.length) next = {label:cands[0].label, date:cands[0].date, days:daysBetween(today, cands[0].date), cite:cands[0].cite, sev:(daysBetween(today, cands[0].date) <= 10 ? 2 : 0)};
+  }
+  return {milestones:miles, next:next};
+}
+function caseStatus(c, today){
+  if(c.closed === "sold") return {key:"closed", label:"Sold", pill:"closed", sev:0, next:null, ready:false, overdue:false};
+  if(c.closed === "released") return {key:"closed", label:"Released", pill:"closed", sev:0, next:null, ready:false, overdue:false};
+  var tl = timeline(c, today);
+  var overdue = tl.milestones.some(function(m){ return m.state === "late"; });
+  if(overdue){
+    var lateM = tl.milestones.filter(function(m){ return m.state === "late"; })[0];
+    return {key:"overdue", label:"Deadline missed — " + lateM.label, pill:"late", sev:3, next:tl.next, ready:false, overdue:true};
+  }
+  if(c.track === "91"){
+    var earliest = (c.nosPosted && c.nosMailed) ? addDays(c.nosPosted > c.nosMailed ? c.nosPosted : c.nosMailed, 10) : null;
+    if(c.saleDate && daysBetween(today, c.saleDate) === 0) return {key:"saletoday", label:"Sale today", pill:"late", sev:3, next:tl.next, ready:true, overdue:false};
+    if(c.nosPosted && c.saleDate && earliest && daysBetween(today, earliest) > 0){
+      return {key:"posting", label:plural(daysBetween(c.nosPosted, today), "day") + " into the 10-day posting period — sale " + (daysBetween(today, c.saleDate) === 1 ? "tomorrow" : fmtDate(c.saleDate)), pill:"late", sev:3, next:tl.next, ready:false, overdue:false};
+    }
+    if(earliest && daysBetween(today, earliest) <= 0){
+      if(c.saleDate && daysBetween(today, c.saleDate) > 0) return {key:"scheduled", label:"Sale set — " + fmtDate(c.saleDate), pill:"ready", sev:1, next:tl.next, ready:true, overdue:false};
+      return {key:"ready", label:"Ready for sale", pill:"ready", sev:1, next:tl.next, ready:true, overdue:false};
+    }
+    var winVerify = tl.milestones.some(function(m){ return m.key === "window" && m.state === "verify"; });
+    if(winVerify) return {key:"verify", label:"Proceedings window passed — verify next step", pill:"soon", sev:2, next:tl.next, ready:false, overdue:false};
+    if(!c.proceedingsDate && c.noplMailed && !c.nosMailed && tl.next === null) return {key:"onclock", label:"On the clock", pill:"ok", sev:0, next:null, ready:false, overdue:false};
+    if(c.proceedingsDate && !c.nosMailed) return {key:"nosnext", label:"Ready for Notice of Sale", pill:"ok", sev:0, next:tl.next, ready:false, overdue:false};
+  }
+  if(tl.next && tl.next.days <= 10 && tl.next.days >= 0) return {key:"duesoon", label:tl.next.label + " — " + daysPhrase(tl.next.days), pill:"soon", sev:2, next:tl.next, ready:false, overdue:false};
+  if(c.track === "91A" && c.locMailed) return {key:"verify", label:"§ 91A notices done — verify next steps", pill:"soon", sev:1, next:null, ready:false, overdue:false};
+  return {key:"onclock", label:"On the clock", pill:"ok", sev:0, next:tl.next, ready:false, overdue:false};
+}
+function dashboardStats(today){
+  var active = state.cases.filter(function(c){ return !c.closed; });
+  var overdue = 0, dueSoon = 0, ready = 0, prot = 0, unprot = 0, deadlines = [];
+  active.forEach(function(c){
+    var st = caseStatus(c, today);
+    if(st.overdue) overdue++;
+    if(st.ready) ready++;
+    if(st.next && st.next.days <= 10 && st.next.days >= 0 && !st.overdue) dueSoon++;
+    if(st.next) deadlines.push({caseId:c.id, veh:vehLabel(c), label:st.next.label, date:st.next.date, days:st.next.days, cite:st.next.cite, sev:st.next.sev});
+    prot += feeTally(c, today).storageAssessable;
+    unprot += unprotectedDays(c, today);
+  });
+  deadlines.sort(function(a,b){ return a.days - b.days; });
+  return {active:active.length, closed:state.cases.length - active.length, overdue:overdue, dueSoon:dueSoon, ready:ready, protectedTotal:prot, unprotectedTotal:unprot, deadlines:deadlines};
+}
+function packetChecklist(c, today){
+  function hasProof(kind){ return c.proofLog.some(function(e){ return e.kind === kind; }); }
+  function mailHas(kind, method){ return c.mailLog.some(function(e){ return e.kind === kind && e.method === method; }); }
+  var items = [];
+  if(c.track === "91"){
+    items.push({label:"Tow ticket / authorization on file", ok:hasProof("ticket")});
+    items.push({label:"Vehicle photos logged (the lien notice requires a photograph of the property)", ok:hasProof("photo"), cite:"42 O.S. § 91 A.4.d"});
+    items.push({label:"Owner / lienholder record received from Service Oklahoma", ok:!!c.recordsReceived});
+    items.push({label:"Notice of Possessory Lien mailed — certified + first-class, to all interested parties", ok:mailHas("NOPL","certified") && mailHas("NOPL","firstclass"), cite:"42 O.S. § 91 A.4"});
+    items.push({label:"Foreclosure proceedings commenced inside the 10–30 day window", ok:!!c.proceedingsDate, cite:"42 O.S. § 91 A.11"});
+    items.push({label:"Notice of Sale posted in two public places", ok:c.proofLog.filter(function(e){ return e.kind === "posting"; }).length >= 2, cite:"42 O.S. § 91 A.7"});
+    items.push({label:"Notice of Sale mailed — certified + first-class, 10+ days before the sale", ok:mailHas("NOS","certified") && mailHas("NOS","firstclass"), cite:"42 O.S. § 91 A.7"});
+    items.push({label:"Sale held", ok:c.closed === "sold"});
+    items.push({label:"Packet printed for the file", ok:c.packetPrinted === true});
+  } else {
+    items.push({label:"Tow authorization on file", ok:hasProof("ticket")});
+    items.push({label:"Vehicle photos logged", ok:hasProof("photo")});
+    items.push({label:"Owner/lienholder record requested (within 3 business days)", ok:!!c.recordsRequested, cite:"47 O.S. § 954A G"});
+    items.push({label:"Owner/lienholder record received", ok:!!c.recordsReceived});
+    items.push({label:"Location notice mailed — certified, within 7 days of the record", ok:!!c.locMailed, cite:"47 O.S. § 954A G"});
+    items.push({label:"Packet printed for the file", ok:c.packetPrinted === true});
+  }
+  var done = items.filter(function(i){ return i.ok; }).length;
+  return {items:items, done:done, total:items.length, pct:items.length ? Math.round(done/items.length*100) : 0};
+}
+
+/* ---------- letters (auto-filled; owner signs, notarizes, mails, files) ---------- */
+function letterKinds(c){
+  var kinds = [];
+  if(c.track === "91"){
+    kinds.push({v:"NOPL-owner", label:"Notice of Possessory Lien — to the owner"});
+    if(c.lienName) kinds.push({v:"NOPL-lien", label:"Notice of Possessory Lien — to the lienholder"});
+    kinds.push({v:"NOS-owner", label:"Notice of Sale — to the owner"});
+    if(c.lienName) kinds.push({v:"NOS-lien", label:"Notice of Sale — to the lienholder"});
+  } else {
+    kinds.push({v:"LOC-owner", label:"Notice of Vehicle Location — to the owner (§ 954A)"});
+    if(c.lienName) kinds.push({v:"LOC-lien", label:"Notice of Vehicle Location — to the lienholder (§ 954A)"});
+  }
+  return kinds;
+}
+function letterChecklist(kind){
+  if(kind.indexOf("NOPL") === 0) return [
+    {t:"A statement that the notice is a Notice of Possessory Lien", cite:"42 O.S. § 91 A.4.a"},
+    {t:"Claimant's complete legal name, physical + mailing address, and phone number (add yours from your letterhead — TowPacket never stores it)", cite:"42 O.S. § 91 A.4.b"},
+    {t:"Name/address of who requested the service — or the date the property was abandoned", cite:"42 O.S. § 91 A.4.c"},
+    {t:"Description of the vehicle, a photograph, and the address where it is held", cite:"42 O.S. § 91 A.4.d"},
+    {t:"Itemized statement: dates of service and charges for each item, totaling the amount claimed", cite:"42 O.S. § 91 A.4.e"},
+    {t:"Statement that the service was authorized (or the property abandoned), and that storage fees will accrue as allowed by law", cite:"42 O.S. § 91 A.4.f"},
+    {t:"Claimant's signature, NOTARIZED, with the business contact person's name", cite:"42 O.S. § 91 A.4.g"},
+    {t:"Mail BOTH ways — regular first-class AND certified, return receipt requested — to every interested party at separate locations", cite:"42 O.S. § 91 A.4"}];
+  if(kind.indexOf("NOS") === 0) return [
+    {t:"A statement that the notice is a Notice of Sale", cite:"42 O.S. § 91 A.6.a"},
+    {t:"The names of all interested parties known to the claimant", cite:"42 O.S. § 91 A.6.b"},
+    {t:"Description of the property, with a photograph (and a new one if its condition materially changed)", cite:"42 O.S. § 91 A.6.c"},
+    {t:"Notarized statement of the work/service and its date, who authorized it, and written proof of authority (or that the property was abandoned)", cite:"42 O.S. § 91 A.6.d"},
+    {t:"The date, time, and exact physical location of the sale", cite:"42 O.S. § 91 A.6.e"},
+    {t:"Foreclosing party's name, physical + mailing address, and phone number (add yours from your letterhead)", cite:"42 O.S. § 91 A.6.f"},
+    {t:"Itemized charges equal to the total compensation claimed", cite:"42 O.S. § 91 A.6.g"},
+    {t:"Post in TWO public places in the county AND mail (first-class + certified) — each at least 10 days before the sale; the sale must happen within 60 days of this mailing", cite:"42 O.S. § 91 A.7, A.11"}];
+  return [
+    {t:"Identifies the vehicle and states where it is being held", cite:"47 O.S. § 954A G"},
+    {t:"Sent by certified mail, postage prepaid, to the owner and any lienholder at the addresses furnished by Service Oklahoma", cite:"47 O.S. § 954A G"},
+    {t:"Sent within 7 days of receiving the owner/lienholder record", cite:"47 O.S. § 954A G"},
+    {t:"States the owner/lienholder may regain possession on payment of towing, storage, and certified-mailing costs under Department rules", cite:"47 O.S. § 954A G"}];
+}
+function chargesBlock(c, today){
+  var t = feeTally(c, today);
+  var lines = [];
+  lines.push("  Tow / service (" + fmtDate(c.towDate) + "): " + money(t.service));
+  if(c.track === "91"){
+    lines.push("  Storage: " + t.protectedDays + " day(s) at " + money(t.storageRate) + "/day = " + money(t.storageAssessable) + " (assessable from the day the Notice of Possessory Lien is mailed — 42 O.S. § 91 A.5; storage before that day is not charged)");
+  } else {
+    lines.push("  Storage: per yard rate — § 91A track; verify assessability under 47 O.S. § 954A G before billing");
+  }
+  lines.push("  Certified mail (" + t.certifiedCount + " mailing(s) at " + money(t.mailFee) + "): " + money(t.mail));
+  if(t.titleFee) lines.push("  Title application fee paid: " + money(t.titleFee));
+  lines.push("  TOTAL CLAIMED: " + money(t.total));
+  return lines.join("\n");
+}
+function buildLetter(c, kind, today){
+  var yard = state.yard;
+  var isLien = kind.slice(-4) === "lien";
+  var partyName = isLien ? c.lienName : c.ownerName;
+  var partyAddr = isLien ? c.lienAddr : c.ownerAddr;
+  var head = yard.name + "\n" + yard.address + "\nContact: " + yard.contact + "\n[Claimant phone number — add from your letterhead]\n\n" + fmtDate(today) + "\n\n" +
+    "TO: " + (partyName || "[name from the Service Oklahoma record]") + (partyAddr ? "\n" + partyAddr : "\n[address from the Service Oklahoma record]") + "\n\n";
+  var veh = "Vehicle: " + vehLabel(c) + (c.color ? ", " + c.color : "") + "\nVIN: " + c.vin + (c.plate ? "\nPlate: " + c.plate : "") + "\nHeld at: " + yard.address + "\nA photograph of the vehicle is attached to the filed copy of this notice.";
+  if(kind.indexOf("NOPL") === 0){
+    return head + "NOTICE OF POSSESSORY LIEN\n(42 O.S. § 91)\n\n" + veh + "\n\n" +
+      "This notice is a Notice of Possessory Lien. " + yard.name + " claims a special (possessory) lien on the vehicle above for services rendered: " + (c.towType === "repair" ? "repair and storage" : "towing and storage") + ", first rendered " + fmtDate(c.towDate) + " at " + (c.towFrom || "the location on the tow ticket") + ", " +
+      (c.requestedBy ? "requested by " + c.requestedBy + "." : "the vehicle having been abandoned by its owner.") + "\n\nItemized charges:\n" + chargesBlock(c, today) + "\n\n" +
+      "Storage or rental fees will accrue as allowed by law from the date of this mailing. Any interested party may inspect and verify the services rendered during normal business hours (42 O.S. § 91 A.9).\n\n" +
+      "Foreclosure proceedings under 42 O.S. § 91 may be commenced no sooner than ten (10) days and no later than thirty (30) days after this notice is mailed (42 O.S. § 91 A.11).\n\n" +
+      "Signature of claimant (NOTARIZED): ______________________________\n" + yard.contact + ", " + yard.name;
+  }
+  if(kind.indexOf("NOS") === 0){
+    var allParties = [c.ownerName, c.lienName].filter(function(x){ return x; }).join("; ") || "[all interested parties]";
+    return head + "NOTICE OF SALE\n(42 O.S. § 91)\n\n" + veh + "\n\n" +
+      "This notice is a Notice of Sale. The vehicle above will be sold to foreclose the possessory lien of " + yard.name + ".\n\n" +
+      "All interested parties known to the claimant: " + allParties + ".\n\n" +
+      "Nature of the service: " + (c.towType === "repair" ? "repair and storage" : "towing and storage") + ", first rendered " + fmtDate(c.towDate) + ", " + (c.requestedBy ? "authorized by " + c.requestedBy + " (written proof of authority is in the case file)." : "the property having been abandoned by its owner.") + "\n\n" +
+      "SALE: " + (c.saleDate ? fmtDate(c.saleDate) + " at 10:00 a.m." : "[SET THE SALE DATE — at least 10 days after this notice is posted and mailed]") + "\nLocation of sale: " + yard.address + "\n\n" +
+      "Itemized charges:\n" + chargesBlock(c, today) + "\n\n" +
+      "Party foreclosing: " + yard.name + ", " + yard.address + ", [phone — add from your letterhead]. Contact person: " + yard.contact + ".\n\n" +
+      "Notarized statement: the undersigned states the service described above was performed as stated, on the dates stated.\n\nSignature (NOTARIZED): ______________________________";
+  }
+  return head + "NOTICE OF VEHICLE LOCATION\n(47 O.S. § 954A)\n\n" + veh + "\n\n" +
+    "The vehicle above was towed on " + fmtDate(c.towDate) + " from " + (c.towFrom || "the location on the tow authorization") + " at the direction of " + (c.requestedBy || "the requesting party") + " and is being held at the address above.\n\n" +
+    "The owner or any lienholder may regain possession of the vehicle in accordance with the rules of the Department of Public Safety upon payment of the costs of certified mailing and the reasonable cost of towing and storage (47 O.S. § 954A G).\n\nCharges to date:\n" + chargesBlock(c, today) + "\n\n" +
+    yard.name + " — " + yard.contact;
+}
+
+/* ---------- views ---------- */
+function showView(name){
+  var panels = document.querySelectorAll("section.panel");
+  for(var i=0;i<panels.length;i++){ panels[i].classList.toggle("active", panels[i].id === "view-" + name); }
+  var btns = document.querySelectorAll("#mainNav button");
+  for(var j=0;j<btns.length;j++){ btns[j].classList.toggle("active", btns[j].getAttribute("data-view") === name); }
+}
+var navBtns = document.querySelectorAll("#mainNav button");
+for(var n=0;n<navBtns.length;n++){ navBtns[n].addEventListener("click", function(){ showView(this.getAttribute("data-view")); }); }
+function renderAll(){
+  renderBoard(); renderCases(); fillCaseSelects(); renderTimeline(); renderNotices(); renderProof(); renderPacket(); renderArchive();
+  $("barCaseCount").textContent = state.cases.length;
+  $("barToday").textContent = fmtDate(todayISO());
+}
+function renderBoard(){
+  var today = todayISO(), st = dashboardStats(today);
+  $("statActive").textContent = st.active;
+  $("statOverdue").textContent = st.overdue;
+  $("statDueSoon").textContent = st.dueSoon;
+  $("statReady").textContent = st.ready;
+  $("statProtected").textContent = money(st.protectedTotal);
+  $("statUnprotected").textContent = st.unprotectedTotal;
+  if(!state.cases.length){ $("riskBanner").innerHTML = "No cases yet. Start the first one from the New Case tab — the clock starts the day of the tow."; }
+  else if(st.overdue){ $("riskBanner").innerHTML = "<b>" + plural(st.overdue, "case") + " with a missed statutory deadline.</b> A missed notice window can cut off storage charges or subordinate the lien — open those cases first and read the Timeline before doing anything else."; }
+  else if(st.dueSoon){ $("riskBanner").innerHTML = "<b>" + plural(st.dueSoon, "deadline") + " land in the next 10 days.</b> The list below is sorted worst-first, with the statute behind each date."; }
+  else { $("riskBanner").innerHTML = "<b>No deadline is inside 10 days.</b> The money rule still applies: storage only becomes chargeable the day the Notice of Possessory Lien is mailed — mail early, not on day 59."; }
+  if(!st.deadlines.length){ $("deadlineList").innerHTML = "<li>No dated deadlines outstanding on active cases.</li>"; }
+  else {
+    $("deadlineList").innerHTML = st.deadlines.slice(0, 8).map(function(d){
+      var cls = d.days < 0 ? "clock-red" : (d.days <= 10 ? "clock-amber" : "");
+      return "<li><b>" + esc(d.veh) + "</b> — " + esc(d.label) + ": <span class=\"" + cls + "\">" + fmtDate(d.date) + " (" + daysPhrase(d.days) + ")</span> <span class=\"cite\">" + esc(d.cite) + "</span></li>";
+    }).join("");
+  }
+}
+function statusPill(st){ return '<span class="pill ' + st.pill + '">' + esc(st.label) + "</span>"; }
+function renderCases(){
+  var today = todayISO();
+  var q = ($("searchCases").value || "").toLowerCase(), f = $("filterStatus").value;
+  var rows = state.cases.map(function(c){
+    var st = caseStatus(c, today);
+    return {c:c, st:st};
+  }).filter(function(r){
+    if(f === "active" && r.c.closed) return false;
+    if(f === "closed" && !r.c.closed) return false;
+    if(f === "overdue" && !r.st.overdue) return false;
+    if(f === "ready" && !r.st.ready) return false;
+    if(f === "duesoon" && !(r.st.next && r.st.next.days <= 10 && r.st.next.days >= 0)) return false;
+    if(q){ var hay = (vehLabel(r.c) + " " + r.c.vin + " " + r.c.ownerName + " " + r.c.ticketNo + " " + r.c.plate).toLowerCase(); if(hay.indexOf(q) < 0) return false; }
+    return true;
+  });
+  $("caseBody").innerHTML = rows.map(function(r){
+    var c = r.c;
+    var next = r.st.next ? esc(r.st.next.label) + "<br>" + fmtDate(r.st.next.date) + " (" + daysPhrase(r.st.next.days) + ")" : "—";
+    return "<tr><td><b>" + esc(vehLabel(c)) + "</b>" + (c.color ? "<br>" + esc(c.color) : "") + "</td><td>" + esc(c.vin.slice(-6)) + "</td><td>" + fmtDate(c.towDate) + "</td><td>" + daysBetween(c.towDate, endRef(c, today)) + "</td>" +
+      "<td><span class=\"pill track\">" + (c.track === "91" ? "§ 91" : "§ 91A") + "</span></td><td>" + statusPill(r.st) + "</td><td>" + next + "</td>" +
+      "<td><button class=\"btn small\" data-open=\"" + c.id + "\" data-goto=\"timeline\">Timeline</button><button class=\"btn small secondary\" data-open=\"" + c.id + "\" data-goto=\"notices\">Notices</button><button class=\"btn small secondary\" data-open=\"" + c.id + "\" data-goto=\"packet\">Packet</button></td></tr>";
+  }).join("");
+  $("caseEmpty").style.display = rows.length ? "none" : "block";
+  var opens = document.querySelectorAll("[data-open]");
+  for(var i=0;i<opens.length;i++){ opens[i].addEventListener("click", function(){ selectedCaseId = Number(this.getAttribute("data-open")); save(); renderAll(); showView(this.getAttribute("data-goto")); }); }
+}
+function fillCaseSelects(){
+  var opts = state.cases.map(function(c){ return '<option value="' + c.id + '"' + (selectedCase() && c.id === selectedCase().id ? " selected" : "") + ">" + esc(vehLabel(c)) + " — VIN …" + esc(c.vin.slice(-6)) + (c.closed ? " (closed)" : "") + "</option>"; }).join("");
+  ["tlCase","ntCase","pfCase","pkCase"].forEach(function(id){ var el = $(id); if(el) el.innerHTML = opts; });
+}
+function mileClass(s){ return s === "done" ? "done" : s === "late" ? "late" : s === "due" ? "due" : s === "verify" ? "verify" : ""; }
+function mileStateLabel(m){
+  if(m.state === "done") return "✓ Done" + (m.doneDate ? " — " + fmtDate(m.doneDate) : "");
+  if(m.state === "late") return "✗ MISSED — was due " + fmtDate(m.due);
+  if(m.state === "verify") return "⚠ VERIFY before acting" + (m.due ? " — window closed " + fmtDate(m.due) : "");
+  if(m.state === "due") return "● Due " + (m.due ? fmtDate(m.due) + " (" + daysPhrase(diffDays(m.due)) + ")" : "now");
+  return "○ Waiting on an earlier step";
+}
+function renderTimeline(){
+  var c = selectedCase(); var wrap = $("tlMiles"), head = $("tlHead");
+  if(!c){ head.innerHTML = ""; wrap.innerHTML = '<div class="empty">No cases yet — start one from the New Case tab.</div>'; return; }
+  var today = todayISO(), tl = timeline(c, today), st = caseStatus(c, today);
+  head.innerHTML = '<div class="statstrip"><h3>' + esc(vehLabel(c)) + " — " + statusPill(st) + '</h3><p style="font-size:13px; color:var(--mut);">VIN ' + esc(c.vin) + " · towed " + fmtDate(c.towDate) + " (" + daysBetween(c.towDate, endRef(c, today)) + ' days on lot) · Track: <b>' + (c.track === "91" ? "42 O.S. § 91 possessory lien" : "47 O.S. § 954A / 42 O.S. § 91A") + '</b> · Ticket ' + esc(c.ticketNo || "—") + (c.lienResponse === "inspection" ? ' · <b>Lienholder response pending:</b> inspection requested' : "") + (c.lienResponse === "payoff" ? ' · <b>Lienholder response pending:</b> payoff requested' : "") + "</p></div>";
+  wrap.innerHTML = tl.milestones.map(function(m){
+    return '<div class="mile ' + mileClass(m.state) + '"><h3>' + esc(m.label) + ' <span class="cite">' + esc(m.cite) + '</span></h3><div class="meta">' + mileStateLabel(m) + '</div><p>' + esc(m.detail) + "</p></div>";
+  }).join("");
+  $("dRecordsReq").value = c.recordsRequested || ""; $("dRecordsRec").value = c.recordsReceived || "";
+  $("dNopl").value = c.noplMailed || ""; $("dProc").value = c.proceedingsDate || "";
+  $("dNosPost").value = c.nosPosted || ""; $("dNosMail").value = c.nosMailed || "";
+  $("dLoc").value = c.locMailed || ""; $("dSale").value = c.saleDate || "";
+  $("dLienResp").value = c.lienResponse || "";
+  $("closePrice").value = c.salePrice === null ? "" : c.salePrice;
+  $("closeDate").value = c.closedDate || "";
+}
+function renderNotices(){
+  var c = selectedCase(); var kindSel = $("ntKind");
+  if(!c){ $("ntLetter").textContent = ""; $("ntChecklist").innerHTML = ""; $("ntMailLog").innerHTML = ""; return; }
+  var kinds = letterKinds(c);
+  var cur = kindSel.value;
+  kindSel.innerHTML = kinds.map(function(k){ return '<option value="' + k.v + '">' + esc(k.label) + "</option>"; }).join("");
+  kindSel.value = kinds.some(function(k){ return k.v === cur; }) ? cur : kinds[0].v;
+  var kind = kindSel.value || kinds[0].v;
+  $("ntChecklist").innerHTML = '<div class="statstrip"><h3>What the statute requires in this letter</h3>' + letterChecklist(kind).map(function(i){
+    return '<div class="checkline"><span class="mark y">•</span><span>' + esc(i.t) + ' <span class="cite">' + esc(i.cite) + "</span></span></div>";
+  }).join("") + "</div>";
+  $("ntLetter").textContent = buildLetter(c, kind, todayISO());
+  $("ntMailLog").innerHTML = c.mailLog.length ? c.mailLog.map(function(e){
+    return "<li><b>" + esc(e.kind) + "</b> to " + esc(e.party) + " — " + (e.method === "certified" ? "certified mail" : "first-class mail") + ", " + fmtDate(e.date) + (e.tracking ? " · tracking " + esc(e.tracking) : "") + ' <button class="btn small danger" data-delmail="' + e.id + '">Delete</button></li>';
+  }).join("") : "<li>No mailings logged yet for this case.</li>";
+  var dels = document.querySelectorAll("[data-delmail]");
+  for(var i=0;i<dels.length;i++){ dels[i].addEventListener("click", function(){
+    var id = Number(this.getAttribute("data-delmail"));
+    var removedKind = null;
+    c.mailLog = c.mailLog.filter(function(e){ if(e.id === id){ removedKind = e.kind; return false; } return true; });
+    syncMailDates(c, removedKind); save(); renderAll(); toast("Mail entry removed — dates re-checked.");
+  }); }
+}
+function syncMailDates(c, onlyKind){
+  /* The mail/proof logs are the evidence of record: a notice's milestone date re-derives
+     from its log entries whenever that notice's log changes — including unwinding to null
+     when the last certified entry is removed, so a phantom date never survives its receipt. */
+  function cert(kind){ var es = c.mailLog.filter(function(e){ return e.kind === kind && e.method === "certified"; }); return es.length ? es[es.length-1].date : null; }
+  function proofDate(kind){ var es = c.proofLog.filter(function(e){ return e.kind === kind; }); return es.length ? es[es.length-1].date : null; }
+  if(!onlyKind || onlyKind === "NOPL") c.noplMailed = cert("NOPL");
+  if(!onlyKind || onlyKind === "NOS"){ c.nosMailed = cert("NOS"); c.nosPosted = proofDate("posting"); }
+  if(!onlyKind || onlyKind === "LOC") c.locMailed = cert("LOC");
+}
+function renderProof(){
+  var c = selectedCase(); var wrap = $("pfList");
+  if(!c){ wrap.innerHTML = ""; return; }
+  if(!c.proofLog.length){ wrap.innerHTML = '<div class="empty">No proof entries yet for this case. Add the tow ticket first — the packet checklist reads this log.</div>'; return; }
+  var kindLabel = {posting:"Posting", photo:"Photo", ticket:"Tow ticket", receipt:"Mail receipt", record:"Record response", other:"Other"};
+  wrap.innerHTML = '<div class="statstrip"><h3>' + esc(vehLabel(c)) + ' — proof on file</h3>' + c.proofLog.map(function(e){
+    return '<div class="checkline"><span class="mark y">✓</span><span><b>' + esc(kindLabel[e.kind] || e.kind) + ":</b> " + esc(e.label) + " — " + fmtDate(e.date) + (e.note ? " · " + esc(e.note) : "") + ' <button class="btn small danger" data-delproof="' + e.id + '">Delete</button></span></div>';
+  }).join("") + "</div>";
+  var dels = document.querySelectorAll("[data-delproof]");
+  for(var i=0;i<dels.length;i++){ dels[i].addEventListener("click", function(){
+    var id = Number(this.getAttribute("data-delproof"));
+    var removedPosting = false;
+    c.proofLog = c.proofLog.filter(function(e){ if(e.id === id){ if(e.kind === "posting") removedPosting = true; return false; } return true; });
+    if(removedPosting) syncMailDates(c, "NOS");
+    save(); renderAll(); toast("Proof entry removed.");
+  }); }
+}
+function renderPacket(){
+  var c = selectedCase(); var body = $("pkBody");
+  if(!c){ body.innerHTML = ""; return; }
+  var today = todayISO(), t = feeTally(c, today), chk = packetChecklist(c, today);
+  var h = '<div class="statstrip"><h3>📁 SALE &amp; TITLE PACKET — ' + esc(vehLabel(c)) + '</h3><p style="font-size:13px;">VIN ' + esc(c.vin) + (c.plate ? " · Plate " + esc(c.plate) : "") + " · Towed " + fmtDate(c.towDate) + " · " + esc(state.yard.name) + "<br>Prepared by TowPacket on " + fmtDate(today) + " — the yard owner signs, files, and pays the state. TowPacket prepares paperwork only.</p></div>";
+  h += '<div class="statstrip"><h3>Packet contents — ' + chk.done + " of " + chk.total + " ready (" + chk.pct + '%)</h3>' + chk.items.map(function(i){
+    return '<div class="checkline"><span class="mark ' + (i.ok ? "y\">✓" : "n\">✗") + '</span><span>' + esc(i.label) + (i.cite ? ' <span class="cite">' + esc(i.cite) + "</span>" : "") + "</span></div>";
+  }).join("");
+  if(c.track === "91A") h += '<div class="checkline"><span class="mark v">!</span><span>Lien foreclosure &amp; title steps under 42 O.S. § 91A — <b>VERIFY</b> the current steps and forms with Service Oklahoma / DPS; TowPacket does not compute them.</span></div>';
+  h += "</div>";
+  h += '<div class="statstrip"><h3>Fee tally</h3><table><tbody>' +
+    "<tr><td>Tow / service charges (" + fmtDate(c.towDate) + ")</td><td style=\"text-align:right;\">" + money(t.service) + "</td></tr>" +
+    (c.track === "91"
+      ? "<tr><td>Storage — <b>" + t.protectedDays + " protected day(s)</b> at " + money(t.storageRate) + "/day, from the lien-notice mailing <span class=\"cite\">42 O.S. § 91 A.5</span></td><td style=\"text-align:right;\">" + money(t.storageAssessable) + "</td></tr>" +
+        "<tr><td>Storage — " + t.unprotectedDays + " day(s) before the lien notice mailed (not assessable — the free-parking cost of a late notice)</td><td style=\"text-align:right; color:var(--red);\">" + money(t.storageUnprotected) + " not charged</td></tr>"
+      : "<tr><td>Storage — § 91A track: TowPacket does not certify assessable storage here. Verify under 47 O.S. § 954A G before billing.</td><td style=\"text-align:right;\">—</td></tr>") +
+    "<tr><td>Certified mail — " + t.certifiedCount + " mailing(s) at " + money(t.mailFee) + "</td><td style=\"text-align:right;\">" + money(t.mail) + "</td></tr>" +
+    "<tr><td>Title application fee " + (t.titleFee ? "" : "— not entered. <b>Verify the current Service Oklahoma fee</b> and record what you paid.") + "</td><td style=\"text-align:right;\">" + money(t.titleFee) + "</td></tr>" +
+    "<tr><td><b>Total claimed</b></td><td style=\"text-align:right;\"><b>" + money(t.total) + "</b></td></tr>" +
+    (t.salePrice !== null ? "<tr><td>Sale price</td><td style=\"text-align:right;\">" + money(t.salePrice) + "</td></tr><tr><td>" + (t.net >= 0 ? "<b>Balance still owed</b> after the sale" : "<b>Surplus</b> over the amount claimed") + "</td><td style=\"text-align:right;\"><b>" + money(Math.abs(t.net)) + "</b></td></tr>" : "") +
+    "</tbody></table>" +
+    (t.salePrice !== null && t.net < 0 ? '<div class="verifybox" style="margin-top:12px;"><b>Verify:</b> how a surplus is handled (notice, holding period, who it goes to) is set by current Service Oklahoma guidance — TowPacket does not invent a rule here. Confirm before disbursing anything.</div>' : "") +
+    "<p style=\"font-size:12.5px; color:var(--mut); margin-top:8px;\">Storage cap reminder: the maximum allowable compensation for storage shall not exceed the Corporation Commission's fees for nonconsensual tows <span class=\"cite\">42 O.S. § 91 A.5</span> — this tally uses your entered rate of " + money(t.storageRate) + "/day; verify it against the current schedule.</p></div>";
+  h += '<div class="statstrip"><h3>Bill of sale worksheet (owner completes &amp; signs)</h3>' +
+    "<p style=\"font-size:13.5px;\">Seller: " + esc(state.yard.name) + ", " + esc(state.yard.address) + "<br>Buyer: ______________________________________<br>Vehicle: " + esc(vehLabel(c)) + (c.color ? ", " + c.color : "") + " · VIN " + esc(c.vin) + "<br>Sale date: " + (c.saleDate ? fmtDate(c.saleDate) : "________________") + " · Sale price: " + (t.salePrice !== null ? money(t.salePrice) : "________________") + "<br>Sold under the possessory-lien foreclosure process, 42 O.S. § 91. Seller signature: ______________________________ · Buyer signature: ______________________________</p></div>";
+  h += '<div class="statstrip"><h3>Title application worksheet (owner files with Service Oklahoma)</h3>' +
+    "<p style=\"font-size:13.5px;\">Applicant (claimant): " + esc(state.yard.name) + ", " + esc(state.yard.address) + ", contact " + esc(state.yard.contact) + "<br>Vehicle: " + esc(vehLabel(c)) + " · VIN " + esc(c.vin) + (c.plate ? " · Plate " + esc(c.plate) : "") + "<br>Registered owner of record: " + esc(c.ownerName || "—") + (c.lienName ? " · Lienholder of record: " + esc(c.lienName) : "") + "<br>First service: " + fmtDate(c.towDate) + " · Lien notice mailed: " + (c.noplMailed ? fmtDate(c.noplMailed) : "—") + " · Sale: " + (c.saleDate ? fmtDate(c.saleDate) : "—") + "</p>" +
+    "<div class=\"verifybox\"><b>Verify:</b> file on the <b>current</b> Service Oklahoma possessory-lien title application form — TowPacket does not print a form number it cannot source. Attach: this packet, the certified-mail receipts (Form 3811 proof may be requested — <span class=\"cite\">42 O.S. § 91 A.3.a</span>), the notarized Notice of Possessory Lien, the Notice of Sale with posting proof, and the bill of sale. You file it and pay the state fee; a denial gets one resubmission within 15 business days (<span class=\"cite\">42 O.S. § 91 A.3</span>).</div></div>";
+  body.innerHTML = h;
+}
+function renderArchive(){
+  var today = todayISO();
+  var closed = state.cases.filter(function(c){ return c.closed; });
+  $("archBody").innerHTML = closed.map(function(c){
+    var t = feeTally(c, today), chk = packetChecklist(c, today);
+    return "<tr><td><b>" + esc(vehLabel(c)) + "</b><br>VIN …" + esc(c.vin.slice(-6)) + "</td><td>" + (c.closed === "sold" ? "Sold" : "Released") + "</td><td>" + fmtDate(c.closedDate) + "</td><td>" + money(t.total) + "</td><td>" + (t.salePrice !== null ? money(t.salePrice) : "—") + "</td><td>" + (t.net === null ? "—" : (t.net >= 0 ? money(t.net) + " owed" : money(-t.net) + " surplus — verify handling")) + "</td><td>" + chk.done + "/" + chk.total + " (" + chk.pct + "%)</td>" +
+      '<td><button class="btn small secondary" data-reopen="' + c.id + '">Reopen</button></td></tr>';
+  }).join("");
+  $("archEmpty").style.display = closed.length ? "none" : "block";
+  var ros = document.querySelectorAll("[data-reopen]");
+  for(var i=0;i<ros.length;i++){ ros[i].addEventListener("click", function(){
+    var c = findCase(Number(this.getAttribute("data-reopen")));
+    if(c){ c.closed = ""; c.closedDate = null; save(); renderAll(); toast("Case reopened — it is back on the Lot Board."); }
+  }); }
+}
+
+/* ---------- exports & print (pure builders so QA can read them back) ---------- */
+function csvCell(v){ var s = String(v === null || v === undefined ? "" : v); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; }
+function lotBoardCsv(today){
+  var lines = [["Case","VIN","Vehicle","Tow date","Track","Status","Next deadline","Deadline date","Citation","Protected storage days","Storage assessable"].join(",")];
+  state.cases.forEach(function(c){
+    var st = caseStatus(c, today), t = feeTally(c, today);
+    lines.push([c.id, c.vin, vehLabel(c), c.towDate, c.track === "91" ? "42 OS 91" : "47 OS 954A / 42 OS 91A", st.label, st.next ? st.next.label : "", st.next ? st.next.date : "", st.next ? st.next.cite : "", t.protectedDays, t.storageAssessable].map(csvCell).join(","));
+  });
+  return lines.join("\n");
+}
+function printBoardHtml(today){
+  var st = dashboardStats(today);
+  var rows = state.cases.map(function(c){
+    var cs = caseStatus(c, today), t = feeTally(c, today);
+    return "<tr><td>" + esc(vehLabel(c)) + "</td><td>" + esc(c.vin) + "</td><td>" + fmtDate(c.towDate) + "</td><td>" + (c.track === "91" ? "§ 91" : "§ 91A") + "</td><td>" + esc(cs.label) + "</td><td>" + (cs.next ? esc(cs.next.label) + " — " + fmtDate(cs.next.date) : "—") + "</td><td>" + money(t.storageAssessable) + "</td></tr>";
+  }).join("");
+  return "<h2>TowPacket — Lot Board (" + fmtDate(today) + ")</h2><p>" + esc(state.yard.name) + " · Active: " + st.active + " · Missed deadlines: " + st.overdue + " · Protected storage: " + money(st.protectedTotal) + "</p><table><thead><tr><th>Vehicle</th><th>VIN</th><th>Towed</th><th>Track</th><th>Status</th><th>Next deadline</th><th>Protected storage</th></tr></thead><tbody>" + rows + "</tbody></table><p>Prepared by TowPacket. Deadlines computed under 42 O.S. § 91 / 47 O.S. § 954A as labeled; verify flagged steps against the current Service Oklahoma forms.</p>";
+}
+function downloadCsv(){
+  var csv = lotBoardCsv(todayISO());
+  try{
+    var blob = new Blob([csv], {type:"text/csv"});
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob); a.download = "towpacket-lot-board.csv";
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  }catch(e){ toast("Export isn't available in this browser — the Packet and Print views still work."); }
+}
+
+/* ---------- wiring ---------- */
+$("dashCasesBtn").addEventListener("click", function(){ showView("cases"); });
+$("dashNewBtn").addEventListener("click", function(){ showView("newcase"); });
+$("exportCsvBtn").addEventListener("click", downloadCsv);
+$("printBoardBtn").addEventListener("click", function(){ $("printArea").innerHTML = printBoardHtml(todayISO()); window.print(); });
+$("searchCases").addEventListener("input", renderCases);
+$("filterStatus").addEventListener("change", renderCases);
+["tlCase","ntCase","pfCase","pkCase"].forEach(function(id){
+  $(id).addEventListener("change", function(){ selectedCaseId = Number(this.value); renderAll(); });
+});
+$("ntKind").addEventListener("change", renderNotices);
+$("ncSaveBtn").addEventListener("click", function(){
+  var err = $("ncErr");
+  var vin = $("ncVin").value.trim(), towDate = $("ncTowDate").value, make = $("ncMake").value.trim();
+  if(!vin || !isValidDateString(towDate) || !make){ err.textContent = "VIN, a valid tow date, and the make are required — the clock can't start without them."; err.style.display = "block"; return; }
+  err.style.display = "none";
+  var towType = $("ncTowType").value;
+  var c = { id:state.nextCaseId++, vin:vin.toUpperCase(), year:Number($("ncYear").value) || null, make:make, model:$("ncModel").value.trim(), color:$("ncColor").value.trim(), plate:$("ncPlate").value.trim(),
+    towDate:towDate, towType:towType, track:(towType === "law" ? "91A" : "91"), requestedBy:$("ncRequestedBy").value.trim(), towFrom:$("ncTowFrom").value.trim(), ticketNo:$("ncTicket").value.trim(),
+    ownerName:$("ncOwnerName").value.trim(), ownerAddr:$("ncOwnerAddr").value.trim(), lienName:$("ncLienName").value.trim(), lienAddr:$("ncLienAddr").value.trim(),
+    recordsRequested:null, recordsReceived:null, noplMailed:null, proceedingsDate:null, nosPosted:null, nosMailed:null, locMailed:null, saleDate:null, salePrice:null, closed:"", closedDate:null, lienResponse:"",
+    serviceCharges:asMoney($("ncService").value, 0), storageRate:asMoney($("ncRate").value, 0), mailFee:asMoney($("ncMailFee").value, 0), titleFee:asMoney($("ncTitleFee").value, 0), packetPrinted:false,
+    mailLog:[], proofLog:[], notes:$("ncNotes").value.trim() };
+  state.cases.push(c);
+  selectedCaseId = c.id;
+  ["ncVin","ncYear","ncMake","ncModel","ncColor","ncPlate","ncTicket","ncRequestedBy","ncTowFrom","ncOwnerName","ncOwnerAddr","ncLienName","ncLienAddr","ncService","ncRate","ncMailFee","ncTitleFee","ncNotes"].forEach(function(id){ $(id).value = ""; });
+  save(); renderAll(); showView("timeline");
+  toast(vin.length !== 17 ? "Case saved — heads-up: that VIN isn't 17 characters. Check it against the dash photo." : "Case saved — the clock is running. See the Timeline for its first deadline.");
+});
+$("dSaveBtn").addEventListener("click", function(){
+  var c = selectedCase(); if(!c) return;
+  function dv(id){ var v = $(id).value; return isValidDateString(v) ? v : null; }
+  c.recordsRequested = dv("dRecordsReq"); c.recordsReceived = dv("dRecordsRec");
+  c.noplMailed = dv("dNopl"); c.proceedingsDate = dv("dProc");
+  c.nosPosted = dv("dNosPost"); c.nosMailed = dv("dNosMail");
+  c.locMailed = dv("dLoc"); c.saleDate = dv("dSale");
+  c.lienResponse = $("dLienResp").value;
+  save(); renderAll();
+  var m = $("dMsg"); m.textContent = "Dates saved — the timeline, tallies, and packet all re-checked against the new dates."; m.style.display = "block";
+});
+$("closeSoldBtn").addEventListener("click", function(){
+  var c = selectedCase(); if(!c) return;
+  var d = isValidDateString($("closeDate").value) ? $("closeDate").value : (c.saleDate || todayISO());
+  c.closed = "sold"; c.closedDate = d; if(!c.saleDate) c.saleDate = d;
+  var p = $("closePrice").value; c.salePrice = p === "" ? c.salePrice : asMoney(p, 0);
+  save(); renderAll(); showView("archive"); toast("Case closed as SOLD — the full file is in the Archive.");
+});
+$("closeReleasedBtn").addEventListener("click", function(){
+  var c = selectedCase(); if(!c) return;
+  c.closed = "released"; c.closedDate = isValidDateString($("closeDate").value) ? $("closeDate").value : todayISO();
+  save(); renderAll(); showView("archive"); toast("Case closed as RELEASED — the file is in the Archive.");
+});
+$("deleteCaseBtn").addEventListener("click", function(){
+  var c = selectedCase(); if(!c) return;
+  if(!confirm("Delete the case for " + vehLabel(c) + " (VIN " + c.vin + ")? This erases the whole file and cannot be undone.")) return;
+  state.cases = state.cases.filter(function(x){ return x.id !== c.id; });
+  selectedCaseId = state.cases.length ? state.cases[0].id : null;
+  save(); renderAll(); showView("cases"); toast("Case deleted.");
+});
+$("ntPrintBtn").addEventListener("click", function(){
+  var c = selectedCase(); if(!c) return;
+  $("printArea").innerHTML = "<pre style=\"white-space:pre-wrap; font-family:inherit; font-size:12.5px;\">" + esc(buildLetter(c, $("ntKind").value, todayISO())) + "</pre>";
+  window.print();
+});
+$("ntLogCertBtn").addEventListener("click", function(){ logMailing("certified"); });
+$("ntLogFirstBtn").addEventListener("click", function(){ logMailing("firstclass"); });
+function logMailing(method){
+  var c = selectedCase(); if(!c) return;
+  var kind = $("ntKind").value, prefix = kind.split("-")[0];
+  var isLien = kind.slice(-4) === "lien";
+  var party = ((isLien ? c.lienName : c.ownerName) || (isLien ? "Lienholder" : "Registered owner")) + (isLien ? " (lienholder)" : " (owner)");
+  var dupe = c.mailLog.some(function(e){ return e.kind === prefix && e.method === method && e.party === party && e.date === todayISO(); });
+  if(dupe){ var dm = $("ntMsg"); dm.textContent = "Already logged: " + prefix + " to " + party + " by " + (method === "certified" ? "certified mail" : "first-class mail") + " today — a double-tap doesn't double-count."; dm.style.display = "block"; return; }
+  c.mailLog.push({id:state.nextLogId++, kind:prefix, party:party, method:method, date:todayISO(), tracking:""});
+  if(method === "certified") syncMailDates(c, prefix);
+  save(); renderAll();
+  var m = $("ntMsg"); m.textContent = "Logged: " + prefix + " to " + party + " by " + (method === "certified" ? "certified mail" : "first-class mail") + ", " + fmtDate(todayISO()) + "." + (method === "certified" ? " The timeline now runs on this date." : ""); m.style.display = "block";
+}
+$("pfAddBtn").addEventListener("click", function(){
+  var c = selectedCase(); if(!c) return;
+  var err = $("pfErr");
+  var label = $("pfLabel").value.trim();
+  var fileEl = $("pfPhoto");
+  if(!label && fileEl && fileEl.files && fileEl.files.length) label = fileEl.files[0].name;
+  if(!label){ err.textContent = "Give the entry a label (or pick a photo file) so the file says what the proof is."; err.style.display = "block"; return; }
+  err.style.display = "none";
+  var d = $("pfDate").value;
+  var pfKindVal = $("pfKind").value;
+  c.proofLog.push({id:state.nextLogId++, kind:pfKindVal, label:label, date:isValidDateString(d) ? d : todayISO(), note:$("pfNote").value.trim()});
+  if(pfKindVal === "posting") syncMailDates(c, "NOS");
+  $("pfLabel").value = ""; $("pfNote").value = "";
+  save(); renderAll(); toast("Proof logged — the packet checklist has been updated.");
+});
+$("pkPrintBtn").addEventListener("click", function(){ $("printArea").innerHTML = $("pkBody").innerHTML; window.print(); });
+$("pkMarkBtn").addEventListener("click", function(){
+  var c = selectedCase(); if(!c) return;
+  c.packetPrinted = true; save(); renderAll(); toast("Packet marked printed for this case file.");
+});
+function pilotMailtoHref(){
+  var subject = "TowPacket pilot request — first 5 packets free-prepped";
+  var body = "Name: " + $("pilotName").value + "\nYard/company: " + $("pilotCompany").value + "\nEmail: " + $("pilotEmail").value + "\nVehicles unclaimed right now: " + $("pilotVehicles").value + "\n\nPlease confirm the pilot (first 5 packets free-prepped, then $49/packet for the pilot month). I understand TowPacket prepares the packets and I sign, file, and pay the state myself.";
+  return "mailto:whitewolfbackoffice@gmail.com?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
+}
+$("pilotTerms").addEventListener("change", function(){ $("pilotSubmit").disabled = !this.checked; });
+$("pilotSubmit").addEventListener("click", function(){ window.location.href = pilotMailtoHref(); });
+$("resetDataBtn").addEventListener("click", function(){
+  if(!confirm("Reset to the fictional sample data? Anything you entered in this demo will be replaced.")) return;
+  var keepTerms = state.termsAccepted === true;
+  state = seedData(); state.termsAccepted = keepTerms;
+  selectedCaseId = state.cases.length ? state.cases[0].id : null; save(); renderAll(); toast("Demo data reset to the fictional sample yard.");
+});
+$("clearDataBtn").addEventListener("click", function(){
+  if(!confirm("Clear ALL cases from this demo? This empties the app on this device.")) return;
+  state = {yard:{name:"Route 66 Recovery LLC", address:"1420 S Main Street, Grove, OK 74344", contact:"Walt Pruitt, owner"}, cases:[], nextCaseId:1, nextLogId:1, termsAccepted:state.termsAccepted === true};
+  selectedCaseId = null; save(); renderAll(); toast("All demo cases cleared.");
+});
+
+/* ---------- voice entry (one press — §9) ---------- */
+function startMic(targetId){
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR){ toast("Voice isn't available on this device/browser — typing works as always"); return; }
+  var rec;
+  try{ rec = new SR(); }catch(e){ toast("Voice isn't available on this device/browser — typing works as always"); return; }
+  rec.lang = "en-US"; rec.interimResults = false; rec.maxAlternatives = 1;
+  rec.onresult = function(ev){ var t = ev.results[0][0].transcript || ""; var el = $(targetId); if(el){ el.value = t; el.dispatchEvent(new Event("input", {bubbles:true})); el.dispatchEvent(new Event("change", {bubbles:true})); } };
+  rec.onerror = function(){ toast("Didn't catch that — try again or type it"); };
+  rec.start();
+}
+var micBtns = document.querySelectorAll("[data-mic]");
+for(var mi=0; mi<micBtns.length; mi++){ micBtns[mi].addEventListener("click", function(){ startMic(this.getAttribute("data-mic")); }); }
+
+/* ---------- terms gate (§11 — nothing proceeds until accepted) ---------- */
+$("termsCheck").addEventListener("change", function(){ $("agreeBtn").disabled = !this.checked; });
+$("agreeBtn").addEventListener("click", function(){
+  state.termsAccepted = true; save();
+  $("termsGate").style.display = "none";
+  toast("You're in. The sample yard is loaded — every date on it is computed from the cited statutes.");
+});
+
+/* ---------- init ---------- */
+state = load();
+if(!state.termsAccepted) $("termsGate").style.display = "flex";
+selectedCaseId = state.cases.length ? state.cases[0].id : null;
+renderAll();
+</script>
+</body>
+</html>
